@@ -1,16 +1,336 @@
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Simulador Tres Cuerpos – Corrección Visualización</title>
-  <link rel="stylesheet" href="styles.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet"> 
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0; padding: 0; overflow: hidden;
+      background-color: #050510; 
+      font-family: 'Roboto Condensed', Arial, sans-serif; 
+      color: #eee; 
+      height: 100%;
+      touch-action: none;
+    }
+    canvas {
+      display: block; 
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #050510 100%);
+      width: 100%; 
+      height: 100%;
+    }
+    /* Botón de toggle fuera del panel */
+    #btnTogglePanel {
+      position: fixed; 
+      top: 20px; 
+      left: 20px;
+      z-index: 20; 
+      padding: 10px 20px;
+      border: 1px solid #555; 
+      border-radius: 5px; 
+      background-color: #333;
+      color: #fff; 
+      font-size: 15px; 
+      cursor: pointer;
+      transition: background-color 0.3s ease; 
+    }
+    #btnTogglePanel:hover {
+      background-color: #555; 
+    }
+    #controlPanel {
+      position: fixed; 
+      top: 20px; 
+      right: 20px;
+      background: rgba(30,30,40,0.95); 
+      padding: 20px;
+      border-radius: 10px; 
+      width: 400px; 
+      z-index: 10;
+      max-height: 90vh; 
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
+      display: flex;
+      flex-direction: column;
+    }
+    #panelHeader {
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      margin-bottom: 15px; 
+      border-bottom: 1px solid #555; 
+      padding-bottom: 10px;
+    }
+    #panelHeader h2 { 
+      margin: 0; 
+      font-size: 24px; 
+      font-weight: normal; 
+    }
+    /* Contenedor para toggle de zoom automático */
+    #globalZoomToggleContainer {
+      margin-top: 12px; 
+      display: none;
+    }
+    #globalZoomToggleContainer button {
+      width: 100%; 
+      padding: 10px;
+      border: 1px solid #555; 
+      border-radius: 5px; 
+      background-color: #444;
+      color: #fff; 
+      font-size: 15px; 
+      cursor: pointer;
+      transition: background-color 0.3s ease; 
+    }
+    #globalZoomToggleContainer button:hover {
+      background-color: #666; 
+    }
+    #controlPanel label {
+      display: block; 
+      margin-top: 10px; 
+      font-size: 15px; 
+      color: #ddd; 
+    }
+    #controlPanel input[type="number"],
+    #controlPanel input[type="color"],
+    #controlPanel input[type="range"],
+    #controlPanel select,
+    #controlPanel input[type="text"] {
+      width: calc(100% - 10px); 
+      padding: 8px; 
+      margin-top: 6px;
+      margin-bottom: 6px; 
+      box-sizing: border-box; 
+      font-size: 14px; 
+      border: 1px solid #666; 
+      border-radius: 4px;
+      background-color: #222; 
+      color: #eee; 
+    }
+    #controlPanel button {
+      width: 49%; 
+      padding: 10px; 
+      margin-top: 15px;
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      font-size: 15px; 
+      background-color: #555; 
+      color: #fff;
+      transition: background-color 0.3s ease; 
+    }
+    #controlPanel button:hover {
+      background-color: #777; 
+    }
+    .btn-container { 
+      display: flex; 
+      justify-content: space-between; 
+      margin-top: 5px; 
+    }
+    #extraInfo {
+      margin-top: 12px; 
+      padding: 10px; 
+      background: rgba(0,0,0,0.8); 
+      border-radius: 5px; 
+      font-size: 13px; 
+      color: #ccc; 
+    }
+    #infoModal {
+      display: none; 
+      position: fixed; 
+      top: 50%; 
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(30,30,40,0.98); 
+      padding: 30px;
+      border-radius: 12px; 
+      z-index: 30; 
+      width: 85%; 
+      max-height: 85vh; 
+      overflow-y: auto;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.7); 
+    }
+    #infoModal h2 { 
+      text-align: center; 
+      font-size: 28px; 
+      margin-bottom: 20px; 
+      font-weight: normal; 
+    }
+    #infoModal p { 
+      font-size: 15px; 
+      line-height: 1.6; 
+      color: #ddd; 
+    }
+    #btnCerrarInfo {
+      display: block; 
+      margin: 20px auto 0 auto; 
+      padding: 10px 20px;
+      border: none; 
+      border-radius: 5px; 
+      background-color: #666;
+      color: #fff; 
+      cursor: pointer;
+      font-size: 15px; 
+      transition: background-color 0.3s ease; 
+    }
+    #btnCerrarInfo:hover {
+      background-color: #888; 
+    }
+    #listaCuerpos {
+      margin-top: 12px; 
+      border: 1px solid #555; 
+      border-radius: 6px; 
+      padding: 10px;
+      background-color: #1a1a2e; 
+    }
+    .cuerpoItem {
+      border-bottom: 1px solid #555;
+      padding: 15px 0; 
+      margin-bottom: 10px;
+    }
+    .cuerpoItem:last-child { 
+      border-bottom: none; 
+    }
+    .campo { 
+      margin-top: 10px; 
+    }
+    .campo label { 
+      font-size: 13px; 
+      color: #ccc; 
+    }
+    .campo input { 
+      width: calc(100% - 8px); 
+      padding: 8px; 
+      font-size: 13px; 
+      border: 1px solid #666; 
+      border-radius: 4px;
+      background-color: #222; 
+      color: #eee; 
+    }
+    .btnEliminar {
+      background-color: #c0392b; 
+      color: #fff; 
+      border: none; 
+      border-radius: 4px;
+      padding: 6px 12px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      margin-top: 8px; 
+      transition: background-color 0.3s ease; 
+    }
+    .btnEliminar:hover {
+      background-color: #e74c3c; 
+    }
+    #formAgregar {
+      display: none; 
+      position: fixed; 
+      top: 50%; 
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(30,30,40,0.95); 
+      padding: 30px;
+      border-radius: 12px; 
+      z-index: 20; 
+      width: 350px; 
+      box-shadow: 0 8px 16px rgba(0,0,0,0.7); 
+    }
+    #formAgregar h3 { 
+      text-align: center; 
+      margin-top: 0; 
+      margin-bottom: 20px; 
+      font-size: 24px; 
+      font-weight: normal; 
+    }
+    #formAgregar label { 
+      display: block; 
+      margin-top: 12px; 
+      font-size: 15px; 
+      color: #ddd; 
+    }
+    #formAgregar input[type="number"],
+    #formAgregar input[type="color"] {
+      width: calc(100% - 10px); 
+      padding: 8px; 
+      margin-top: 6px;
+      margin-bottom: 10px; 
+      box-sizing: border-box; 
+      font-size: 14px; 
+      border: 1px solid #666; 
+      border-radius: 4px;
+      background-color: #222; 
+      color: #eee; 
+    }
+    #formAgregar button {
+      width: 100%; 
+      padding: 10px; 
+      margin-top: 15px;
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+      font-size: 15px; 
+      background-color: #555; 
+      color: #fff;
+      transition: background-color 0.3s ease; 
+    }
+    #formAgregar button:hover {
+      opacity: 0.9;
+      background-color: #777; 
+    }
+    #formAgregar button#btnCancelarAgregar {
+      background-color: #777; 
+    }
+    #formAgregar button#btnCancelarAgregar:hover {
+      background-color: #999; 
+    }
+    .scrollable-section {
+      max-height: 400px; 
+      overflow-y: auto;
+      margin-top: 10px;
+      border: 1px solid #555;
+      border-radius: 6px;
+      padding: 10px;
+      background-color: #1a1a2e; 
+    }
+    .scrollable-section h3 {
+      margin-top: 0; 
+      margin-bottom: 10px;
+    }
+    .scrollable-section #listaCuerpos {
+      border: none; 
+      padding: 0; 
+      background-color: transparent; 
+      margin-top: 0; 
+    }
+    @media (max-width: 600px) {
+      #controlPanel { 
+        width: 95%; 
+        right: 2.5%; 
+        top: 15px; 
+        padding: 15px; 
+      }
+      #infoModal, #formAgregar {
+        width: 90%; 
+        padding: 20px; 
+      }
+      #infoModal h2, #formAgregar h3 {
+        font-size: 22px; 
+      }
+      #infoModal p, #formAgregar label,
+      #controlPanel label,
+      #controlPanel button, #btnTogglePanel,
+      #globalZoomToggleContainer button,
+      .btnEliminar, #formAgregar button,
+      .campo label, .campo input {
+        font-size: 14px; 
+      }
+    }
+  </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
-
+  
   <!-- Botón de toggle siempre visible -->
   <button id="btnTogglePanel">Ocultar Panel</button>
-
+  
   <div id="controlPanel" style="display:block;"> 
     <div id="panelHeader">
       <h2>Controles</h2>
@@ -22,7 +342,7 @@
     <div class="btn-container">
       <button id="btnRestablecer" style="width:98%;">Restablecer por defecto</button>
     </div>
-
+    
     <label for="configSelect">Configuración:</label>
     <select id="configSelect">
       <option value="personalizada" selected>Personalizada</option>
@@ -32,16 +352,16 @@
       <option value="butterfly">Butterfly‑1</option>
     </select>
     <div id="extraInfo"></div>
-
+    
     <label for="dtRange">Paso temporal (dt): <span id="dtValor">0.001</span></label>
     <input type="range" id="dtRange" min="0.0001" max="0.01" step="0.0001" value="0.001">
-
+    
     <label for="scaleRange">Escala: <span id="scaleValor">1</span></label>
     <input type="range" id="scaleRange" min="0.1" max="5" step="0.1" value="1">
-
+    
     <label for="speedRange">Velocidad: <span id="speedValor">1</span>x</label>
     <input type="range" id="speedRange" min="0.1" max="50" step="0.1" value="1">
-
+    
     <label for="trackSelect">Tracking Cámara:</label>
     <select id="trackSelect">
       <option value="none">Ninguno</option>
@@ -50,7 +370,7 @@
     <div id="globalZoomToggleContainer">
       <button id="btnToggleAutoZoom">Desactivar Zoom Automático</button>
     </div>
-
+    
     <div class="btn-container">
       <button id="btnInfo" style="width:100%;">Información</button>
     </div>
@@ -61,7 +381,7 @@
     <button id="btnAgregar" style="width:100%;">Añadir Cuerpo</button>
     <small style="color:#aaa; display:block; margin-top:10px;">Arrastra los cuerpos o, si no tocas ninguno, arrastra para mover la cámara.</small>
   </div>
-
+  
   <div id="infoModal">
     <h2>Información sobre las Configuraciones</h2>
     <p><strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.</p>
@@ -70,7 +390,7 @@
     <p><strong>Butterfly‑1:</strong> Solución de Šuvakov–Dmitrašinović con trayectoria tipo mariposa.</p>
     <button id="btnCerrarInfo" style="width: 100%">Cerrar</button>
   </div>
-
+  
   <div id="formAgregar">
     <h3>Nuevo Cuerpo</h3>
     <label for="nuevaMasa">Masa:</label>
@@ -88,34 +408,34 @@
     <button id="btnConfirmarAgregar">Agregar</button>
     <button id="btnCancelarAgregar" style="background-color:#777;">Cancelar</button>
   </div>
-
+  
   <script>
     (function(){
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
-
+      
       function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
       }
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
-
-      // Transformación para que el eje Y sea natural (valores positivos hacia arriba) se aplica en draw.
+      
+      // Convertir coordenadas de pantalla a mundo (eje Y normal: positivos hacia arriba)
       function screenToWorld(screenX, screenY) {
         return {
           x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
           y: (canvas.height/2 - screenY) / sim.scale + sim.centerY
         };
       }
-
+      
       let isPinching = false, initialPinchDistance = 0, initialScale = 0;
       let initialCenter = {x: 0, y: 0};
-
+      
       let draggingIndex = null, draggingCamera = false;
       let lastMouseX = 0, lastMouseY = 0;
       let lastTouchX = 0, lastTouchY = 0;
-
+      
       const btnTogglePanel = document.getElementById('btnTogglePanel');
       btnTogglePanel.addEventListener('click', () => {
         const panel = document.getElementById('controlPanel');
@@ -127,7 +447,7 @@
           btnTogglePanel.textContent = "Mostrar Panel";
         }
       });
-
+      
       canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -144,13 +464,12 @@
           }
         });
         if (!sobreCuerpo && document.getElementById('trackSelect').value === "none") {
-          // Para el panning, se invierte la X para que arrastrar a la derecha mueva la cámara hacia la derecha.
           draggingCamera = true;
         }
         lastMouseX = mouseX;
         lastMouseY = mouseY;
       });
-
+      
       canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -165,18 +484,17 @@
           body.trail = [];
         } else if (draggingCamera) {
           const dx = mouseX - lastMouseX;
-          const dy = mouseY - lastMouseY;
-          // Para X, restamos el desplazamiento; para Y, sumamos
-          sim.centerX -= dx / sim.scale;
-          sim.centerY += dy / sim.scale;
+	  const dy = mouseY - lastMouseY;
+	  sim.centerX -= dx / sim.scale;
+	  sim.centerY += dy / sim.scale;
         }
         lastMouseX = mouseX;
         lastMouseY = mouseY;
       });
-
+      
       canvas.addEventListener('mouseup', () => { draggingIndex = null; draggingCamera = false; });
       canvas.addEventListener('mouseleave', () => { draggingIndex = null; draggingCamera = false; });
-
+      
       canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if(e.touches.length === 1) {
@@ -210,7 +528,7 @@
           initialCenter = {x: sim.centerX, y: sim.centerY};
         }
       });
-
+      
       canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
         if(e.touches.length === 1 && !isPinching) {
@@ -228,9 +546,9 @@
             body.trail = [];
           } else if (draggingCamera) {
             const dx = touch.clientX - lastTouchX;
-            const dy = touch.clientY - lastTouchY;
-            sim.centerX -= dx / sim.scale;
-            sim.centerY += dy / sim.scale;
+	  const dy = touch.clientY - lastTouchY;
+	  sim.centerX -= dx / sim.scale;
+	  sim.centerY += dy / sim.scale;
           }
           lastTouchX = touch.clientX;
           lastTouchY = touch.clientY;
@@ -251,12 +569,12 @@
           sim.centerY = initialCenter.y - dy;
         }
       });
-
+      
       canvas.addEventListener('touchend', (e) => {
         if(e.touches.length < 2) { isPinching = false; }
         if(e.touches.length === 0) { draggingIndex = null; draggingCamera = false; }
       });
-
+      
       canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomFactor = Math.exp(e.deltaY * -0.001);
@@ -272,8 +590,7 @@
           }
         }
       });
-
-      // Configuraciones predeterminadas con eje Y invertido en valores y velocidades, manteniendo los colores originales.
+      
       const config3Body = {
         lagrange: [
           { m: 1, x: 1, y: 0, vx: 0, vy: -0.577350269, color: "#FF0000" },
@@ -281,7 +598,7 @@
           { m: 1, x: -0.5, y: 0.866025404, vx: 0.5, vy: 0.288675134, color: "#0000FF" }
         ],
         figura8: [
-          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy:  -0.86473146/2, color: "#FF0000" },
+          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy: -0.86473146/2, color: "#FF0000" },
           { m: 1, x: -0.97000436, y: -0.24308753, vx: 0.93240737/2, vy: 0.86473146/2, color: "#00FF00" },
           { m: 1, x: 0, y: 0, vx: 0, vy: 0, color: "#0000FF" }
         ],
@@ -301,7 +618,6 @@
           { m: 1, x: 0, y: 0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
         ]
       };
-      // Guardar copia original de "personalizada"
       const originalPersonalizada = JSON.parse(JSON.stringify(config3Body.personalizada));
 
       class Body {
@@ -315,7 +631,7 @@
           this.ay = 0;
           this.color = cfg.color || "#FFFFFF";
           this.trail = [];
-          this.trailLength = 1200;
+          this.trailLength = 600;
           this.radius = 0.02;
         }
         update(dt) {
@@ -407,20 +723,19 @@
               "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović." : "";
           }
           this.bodies.forEach(b => b.trail = []);
-	  // Nuevo bloque para centrar la cámara en el nuevo sistema
-	  if (this.bodies.length > 0) {
- 	      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
- 	      for (let b of this.bodies) {
-        	  if (b.x < minX) minX = b.x;
-	          if (b.x > maxX) maxX = b.x;
-        	  if (b.y < minY) minY = b.y;
-        	  if (b.y > maxY) maxY = b.y;
-  	  }
-   	  this.centerX = (minX + maxX) / 2;
-   	  this.centerY = (minY + maxY) / 2;
-	  }
           actualizarListaCuerpos();
           actualizarTrackSelect();
+          if (this.bodies.length > 0) {
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            for (let b of this.bodies) {
+              if (b.x < minX) minX = b.x;
+              if (b.x > maxX) maxX = b.x;
+              if (b.y < minY) minY = b.y;
+              if (b.y > maxY) maxY = b.y;
+            }
+            this.centerX = (minX + maxX) / 2;
+            this.centerY = (minY + maxY) / 2;
+          }
         }
         computeForces() {
           for (let b of this.bodies) { b.ax = 0; b.ay = 0; }
@@ -439,11 +754,14 @@
           }
         }
         update() {
-          if (this.paused) return;
-          for (let i = 0; i < this.speed; i++) {
-            this.computeForces();
-            for (let b of this.bodies) { b.update(this.dt); }
+          // Actualizar la física solo si no está pausada.
+          if (!this.paused) {
+            for (let i = 0; i < this.speed; i++) {
+              this.computeForces();
+              for (let b of this.bodies) { b.update(this.dt); }
+            }
           }
+          // Actualizar el tracking de la cámara (siempre, incluso en pausa)
           const trackVal = document.getElementById('trackSelect').value;
           if (trackVal.startsWith("body")) {
             const idx = parseInt(trackVal.slice(4));
@@ -478,13 +796,14 @@
               }
             }
           }
+          // Actualizar la escala (zoom) siempre, incluso en pausa.
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         draw() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
           ctx.translate(canvas.width/2, canvas.height/2);
-          ctx.scale(1, -1); 
+          ctx.scale(1, -1);
           for (let b of this.bodies) { b.draw(ctx, this.scale, this.centerX, this.centerY); }
           ctx.restore();
         }
@@ -573,7 +892,6 @@
         });
       }
 
-      // Botón "Restablecer por defecto": reinicia la aplicación como al inicio.
       document.getElementById('btnRestablecer').addEventListener('click', () => {
         document.getElementById('configSelect').value = "personalizada";
         document.getElementById('dtRange').value = "0.001";
@@ -583,7 +901,6 @@
         document.getElementById('speedRange').value = "1";
         document.getElementById('speedValor').textContent = "1";
         document.getElementById('trackSelect').value = "none";
-        // Reiniciar la configuración personalizada a su estado original
         config3Body.personalizada = JSON.parse(JSON.stringify(originalPersonalizada));
         sim.loadConfiguration("personalizada");
         sim.centerX = 0;
@@ -656,7 +973,6 @@
         formAgregar.style.display = "none";
       });
 
-      // Al agregar un nuevo cuerpo, si el color es blanco, se asigna uno aleatorio.
       document.getElementById('btnConfirmarAgregar').addEventListener('click', () => {
         const m = parseFloat(document.getElementById('nuevaMasa').value);
         const vx = parseFloat(document.getElementById('nuevaVx').value);
