@@ -14,7 +14,7 @@
       display: block; background-color: #111;
       width: 100%; height: 100%;
     }
-    /* Botón de toggle fuera del panel */
+    /* Botón de toggle fuera del panel, siempre visible */
     #btnTogglePanel {
       position: fixed; top: 10px; left: 10px;
       z-index: 20; padding: 10px 15px;
@@ -27,12 +27,13 @@
       border-radius: 8px; width: 380px; z-index: 10;
       max-height: 90vh; overflow-y: auto;
     }
+    /* Encabezado del panel */
     #panelHeader {
       display: flex; justify-content: center; align-items: center;
       margin-bottom: 10px;
     }
     #panelHeader h2 { margin: 0; }
-    /* Contenedor para toggle de zoom automático */
+    /* Contenedor para el toggle de zoom automático */
     #globalZoomToggleContainer {
       margin-top: 8px;
       display: none;
@@ -190,7 +191,6 @@
     <input type="number" id="nuevoPosX" value="0" step="1">
     <label for="nuevoPosY">Posición Y:</label>
     <input type="number" id="nuevoPosY" value="0" step="1">
-    <!-- Se mantiene el input de color para que el usuario pueda cambiarlo si lo desea -->
     <label for="nuevoColor">Color:</label>
     <input type="color" id="nuevoColor" value="#ffffff">
     <button id="btnConfirmarAgregar">Agregar</button>
@@ -209,7 +209,7 @@
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
       
-      // Convertir coordenadas de pantalla a mundo con eje Y invertido (valores positivos hacia arriba)
+      // Transformación para que el eje Y sea natural (valores positivos hacia arriba) se aplica en draw.
       function screenToWorld(screenX, screenY) {
         return {
           x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
@@ -252,6 +252,7 @@
           }
         });
         if (!sobreCuerpo && document.getElementById('trackSelect').value === "none") {
+          // Para el panning, se invierte la X para que arrastrar a la derecha mueva la cámara hacia la derecha.
           draggingCamera = true;
         }
         lastMouseX = mouseX;
@@ -273,8 +274,9 @@
         } else if (draggingCamera) {
           const dx = mouseX - lastMouseX;
           const dy = mouseY - lastMouseY;
+          // Para X, restamos el desplazamiento; para Y, sumamos
           sim.centerX -= dx / sim.scale;
-          sim.centerY -= dy / sim.scale;
+          sim.centerY += dy / sim.scale;
         }
         lastMouseX = mouseX;
         lastMouseY = mouseY;
@@ -336,7 +338,7 @@
             const dx = touch.clientX - lastTouchX;
             const dy = touch.clientY - lastTouchY;
             sim.centerX -= dx / sim.scale;
-            sim.centerY -= dy / sim.scale;
+            sim.centerY += dy / sim.scale;
           }
           lastTouchX = touch.clientX;
           lastTouchY = touch.clientY;
@@ -379,35 +381,35 @@
         }
       });
       
-      // Configuraciones predeterminadas con colores y con valores Y invertidos
+      // Configuraciones predeterminadas con eje Y invertido en valores y velocidades, manteniendo los colores originales.
       const config3Body = {
         lagrange: [
-          { m: 1, x: 1, y: 0, vx: 0, vy: 0.577350269, color: "#FF0000" },
+          { m: 1, x: 1, y: 0, vx: 0, vy: -0.577350269, color: "#FF0000" },
           { m: 1, x: -0.5, y: -0.866025404, vx: -0.5, vy: 0.288675134, color: "#00FF00" },
           { m: 1, x: -0.5, y: 0.866025404, vx: 0.5, vy: 0.288675134, color: "#0000FF" }
         ],
         figura8: [
-          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy: -0.86473146/2, color: "#FF0000" },
+          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy:  -0.86473146/2, color: "#FF0000" },
           { m: 1, x: -0.97000436, y: -0.24308753, vx: 0.93240737/2, vy: 0.86473146/2, color: "#00FF00" },
           { m: 1, x: 0, y: 0, vx: 0, vy: 0, color: "#0000FF" }
         ],
         euler: [
-          { m: 1, x: -1, y: 0, vx: 0, vy: -0.3, color: "#FF8800" },
-          { m: 1, x: 0, y: 0, vx: 0, vy: 0.6, color: "#88FF00" },
-          { m: 1, x: 1, y: 0, vx: 0, vy: -0.3, color: "#0088FF" }
+          { m: 1, x: -1, y: 0, vx: 0, vy: 0.3, color: "#FF8800" },
+          { m: 1, x: 0, y: 0, vx: 0, vy: -0.6, color: "#88FF00" },
+          { m: 1, x: 1, y: 0, vx: 0, vy: 0.3, color: "#0088FF" }
         ],
         butterfly: [
-          { m: 1, x: -1, y: 0, vx: 0.306893, vy: -0.125507, color: "#FF0000" },
-          { m: 1, x: 1, y: 0, vx: 0.306893, vy: -0.125507, color: "#00FF00" },
-          { m: 1, x: 0, y: 0, vx: -0.613786, vy: 0.251014, color: "#0000FF" }
+          { m: 1, x: -1, y: 0, vx: 0.306893, vy: 0.125507, color: "#FF0000" },
+          { m: 1, x: 1, y: 0, vx: 0.306893, vy: 0.125507, color: "#00FF00" },
+          { m: 1, x: 0, y: 0, vx: -0.613786, vy: -0.251014, color: "#0000FF" }
         ],
         personalizada: [
-          { m: 1, x: 0.5, y: 0, vx: 0, vy: -0.5, color: "#FFAA00" },
-          { m: 1, x: -0.5, y: 0, vx: 0, vy: 0.5, color: "#00AABB" },
-          { m: 1, x: 0, y: -0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
+          { m: 1, x: 0.5, y: 0, vx: 0, vy: 0.5, color: "#FFAA00" },
+          { m: 1, x: -0.5, y: 0, vx: 0, vy: -0.5, color: "#00AABB" },
+          { m: 1, x: 0, y: 0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
         ]
       };
-      // Guardar copia original de la configuración "personalizada"
+      // Guardar copia original de "personalizada"
       const originalPersonalizada = JSON.parse(JSON.stringify(config3Body.personalizada));
       
       class Body {
@@ -509,7 +511,8 @@
             document.getElementById('speedRange').value = this.speed;
             document.getElementById('speedValor').textContent = this.speed;
             this.bodies = config3Body[name].map(c => new Body(c));
-            document.getElementById('extraInfo').innerHTML = (name === "butterfly") ? "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović." : "";
+            document.getElementById('extraInfo').innerHTML = (name === "butterfly") ?
+              "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović." : "";
           }
           this.bodies.forEach(b => b.trail = []);
           actualizarListaCuerpos();
@@ -577,7 +580,7 @@
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
           ctx.translate(canvas.width/2, canvas.height/2);
-          ctx.scale(1, -1); // Invertir eje Y para que los valores positivos vayan hacia arriba
+          ctx.scale(1, -1); // Invertir eje Y para que valores positivos vayan hacia arriba
           for (let b of this.bodies) { b.draw(ctx, this.scale, this.centerX, this.centerY); }
           ctx.restore();
         }
@@ -613,7 +616,6 @@
         lista.innerHTML = "";
         sim.bodies.forEach((b, idx) => {
           const div = document.createElement('div');
-          // El título ahora refleja el color del cuerpo
           div.innerHTML = `<strong style="color: ${b.color};">Cuerpo ${idx+1}</strong>`;
           const masaDiv = document.createElement('div');
           masaDiv.className = "campo";
@@ -639,7 +641,6 @@
             <input type="color" value="${b.color}">`;
           colorDiv.querySelector('input').addEventListener('change', function() {
             b.color = this.value;
-            // Actualizar el título del cuerpo para reflejar el nuevo color
             div.querySelector('strong').style.color = b.color;
           });
           div.appendChild(colorDiv);
@@ -668,7 +669,7 @@
         });
       }
       
-      // Botón "Restablecer por defecto": reinicia la aplicación como si se iniciara por primera vez.
+      // Botón "Restablecer por defecto": reinicia la aplicación como al inicio.
       document.getElementById('btnRestablecer').addEventListener('click', () => {
         document.getElementById('configSelect').value = "personalizada";
         document.getElementById('dtRange').value = "0.001";
@@ -751,7 +752,7 @@
         formAgregar.style.display = "none";
       });
       
-      // Al agregar un cuerpo nuevo, si el color es blanco, se asigna uno aleatorio.
+      // Al agregar un nuevo cuerpo, si el color es blanco, se asigna uno aleatorio.
       document.getElementById('btnConfirmarAgregar').addEventListener('click', () => {
         const m = parseFloat(document.getElementById('nuevaMasa').value);
         const vx = parseFloat(document.getElementById('nuevaVx').value);
@@ -759,9 +760,8 @@
         const x = parseFloat(document.getElementById('nuevoPosX').value);
         const y = parseFloat(document.getElementById('nuevoPosY').value);
         let color = document.getElementById('nuevoColor').value;
-        // Si es blanco, asignar un color aleatorio
         if(color.toLowerCase() === "#ffffff") {
-          color = "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+          color = "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         }
         const newBody = new Body({ m, x, y, vx, vy, color });
         config3Body.personalizada.push({ m, x, y, vx, vy, color });
