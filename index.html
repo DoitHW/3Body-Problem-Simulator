@@ -20,18 +20,17 @@
       height: 100%;
     }
     
-    /* Nuevo contenedor para los controles superiores */
+    /* Contenedor para los controles superiores */
     #topControls {
       position: fixed;
       top: 20px;
       left: 20px;
       display: flex;
       align-items: center;
-      gap: 20px; /* Separación constante */
+      gap: 20px;
       z-index: 20;
     }
     
-    /* Ya no se posicionan individualmente, se dejan las reglas generales */
     #btnTogglePanel {
       padding: 10px 20px;
       border: 1px solid #555; 
@@ -822,15 +821,15 @@
         }
       }
     
-      btnTogglePanel.addEventListener('click', () => {
+      document.getElementById('btnTogglePanel').addEventListener('click', () => {
         const panel = document.getElementById('controlPanel');
         if (panel.style.display === "none") {
           panel.style.display = "block";
           updateText(document.getElementById('langSelect').value);
-          btnTogglePanel.textContent = translations[document.getElementById('langSelect').value]["btnTogglePanel"];
+          document.getElementById('btnTogglePanel').textContent = translations[document.getElementById('langSelect').value]["btnTogglePanel"];
         } else {
           panel.style.display = "none";
-          btnTogglePanel.textContent = translations[document.getElementById('langSelect').value]["btnTogglePanel"];
+          document.getElementById('btnTogglePanel').textContent = translations[document.getElementById('langSelect').value]["btnTogglePanel"];
         }
       });
     
@@ -1158,45 +1157,48 @@
           }
         }
         update() {
-          if (this.paused) return;
-          for (let i = 0; i < this.speed; i++) {
-            this.computeForces();
-            for (let b of this.bodies) { b.update(this.dt); }
-          }
-          const trackVal = document.getElementById('trackSelect').value;
-          if (trackVal.startsWith("body")) {
-            const idx = parseInt(trackVal.slice(4));
-            if (this.bodies[idx]) {
-              const targetX = this.bodies[idx].x;
-              const targetY = this.bodies[idx].y;
-              this.centerX += (targetX - this.centerX) * 0.1;
-              this.centerY += (targetY - this.centerY) * 0.1;
+          // Si no está pausada, actualizamos la física y tracking
+          if (!this.paused) {
+            for (let i = 0; i < this.speed; i++) {
+              this.computeForces();
+              for (let b of this.bodies) { b.update(this.dt); }
             }
-          } else if (trackVal === "global") {
-            if (this.bodies.length > 0) {
-              let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-              for (let b of this.bodies) {
-                if (b.x < minX) minX = b.x;
-                if (b.x > maxX) maxX = b.x;
-                if (b.y < minY) minY = b.y;
-                if (b.y > maxY) maxY = b.y;
+            const trackVal = document.getElementById('trackSelect').value;
+            if (trackVal.startsWith("body")) {
+              const idx = parseInt(trackVal.slice(4));
+              if (this.bodies[idx]) {
+                const targetX = this.bodies[idx].x;
+                const targetY = this.bodies[idx].y;
+                this.centerX += (targetX - this.centerX) * 0.1;
+                this.centerY += (targetY - this.centerY) * 0.1;
               }
-              const desiredCenterX = (minX + maxX) / 2;
-              const desiredCenterY = (minY + maxY) / 2;
-              this.centerX += (desiredCenterX - this.centerX) * 0.1;
-              this.centerY += (desiredCenterY - this.centerY) * 0.1;
-              const boundingWidth = maxX - minX;
-              const boundingHeight = maxY - minY;
-              const margin = 1.2;
-              const requiredScale = Math.min(canvas.width, canvas.height) / (Math.max(boundingWidth, boundingHeight) * margin);
-              this._requiredGlobalScale = requiredScale;
-              if (this.autoZoomEnabled) {
-                this.targetScale = requiredScale * this.userScaleFactor;
-              } else {
-                this.targetScale = this.userScaleFactor * this.factorBase;
+            } else if (trackVal === "global") {
+              if (this.bodies.length > 0) {
+                let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                for (let b of this.bodies) {
+                  if (b.x < minX) minX = b.x;
+                  if (b.x > maxX) maxX = b.x;
+                  if (b.y < minY) minY = b.y;
+                  if (b.y > maxY) maxY = b.y;
+                }
+                const desiredCenterX = (minX + maxX) / 2;
+                const desiredCenterY = (minY + maxY) / 2;
+                this.centerX += (desiredCenterX - this.centerX) * 0.1;
+                this.centerY += (desiredCenterY - this.centerY) * 0.1;
+                const boundingWidth = maxX - minX;
+                const boundingHeight = maxY - minY;
+                const margin = 1.2;
+                const requiredScale = Math.min(canvas.width, canvas.height) / (Math.max(boundingWidth, boundingHeight) * margin);
+                this._requiredGlobalScale = requiredScale;
+                if (this.autoZoomEnabled) {
+                  this.targetScale = requiredScale * this.userScaleFactor;
+                } else {
+                  this.targetScale = this.userScaleFactor * this.factorBase;
+                }
               }
             }
           }
+          // Siempre actualizamos la escala, incluso si la simulación está pausada
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         draw() {
@@ -1208,6 +1210,7 @@
           ctx.restore();
         }
       }
+    
       const sim = new Simulation();
       sim.loadConfiguration(document.getElementById('configSelect').value);
       updateText(initialLang);
