@@ -1,0 +1,356 @@
+html, body {
+  margin: 0; padding: 0; overflow: hidden;
+  background-color: #050510; 
+  font-family: 'Roboto Condensed', Arial, sans-serif; 
+  color: #eee; 
+  height: 100%;
+  touch-action: none;
+}
+
+canvas {
+  display: block; 
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #050510 100%);
+  width: 100%; 
+  height: 100%;
+}
+
+#btnTogglePanel {
+  position: fixed; 
+  top: 20px; 
+  left: 20px;
+  z-index: 20; 
+  padding: 10px 20px;
+  border: 1px solid #555; 
+  border-radius: 5px; 
+  background-color: #333;
+  color: #fff; 
+  font-size: 15px; 
+  cursor: pointer;
+  transition: background-color 0.3s ease; 
+}
+
+#btnTogglePanel:hover {
+  background-color: #555; 
+}
+
+#controlPanel {
+  position: fixed; 
+  top: 20px; 
+  right: 20px;
+  background: rgba(30,30,40,0.95); 
+  padding: 20px;
+  border-radius: 10px; 
+  width: 400px; 
+  z-index: 10;
+  max-height: 90vh; 
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5); 
+  display: flex;
+  flex-direction: column;
+}
+
+#panelHeader {
+  display: flex; 
+  justify-content: center; 
+  align-items: center;
+  margin-bottom: 15px; 
+  border-bottom: 1px solid #555; 
+  padding-bottom: 10px;
+}
+
+#panelHeader h2 { 
+  margin: 0; 
+  font-size: 24px; 
+  font-weight: normal; 
+}
+
+#globalZoomToggleContainer {
+  margin-top: 12px; 
+  display: none;
+}
+
+#globalZoomToggleContainer button {
+  width: 100%; 
+  padding: 10px;
+  border: 1px solid #555; 
+  border-radius: 5px; 
+  background-color: #444;
+  color: #fff; 
+  font-size: 15px; 
+  cursor: pointer;
+  transition: background-color 0.3s ease; 
+}
+
+#globalZoomToggleContainer button:hover {
+  background-color: #666; 
+}
+
+#controlPanel label {
+  display: block; 
+  margin-top: 10px; 
+  font-size: 15px; 
+  color: #ddd; 
+}
+
+#controlPanel input[type="number"],
+#controlPanel input[type="color"],
+#controlPanel input[type="range"],
+#controlPanel select,
+#controlPanel input[type="text"] {
+  width: calc(100% - 10px); 
+  padding: 8px; 
+  margin-top: 6px;
+  margin-bottom: 6px; 
+  box-sizing: border-box; 
+  font-size: 14px; 
+  border: 1px solid #666; 
+  border-radius: 4px;
+  background-color: #222; 
+  color: #eee; 
+}
+
+#controlPanel button {
+  width: 49%; 
+  padding: 10px; 
+  margin-top: 15px;
+  border: none; 
+  border-radius: 5px; 
+  cursor: pointer; 
+  font-size: 15px; 
+  background-color: #555; 
+  color: #fff;
+  transition: background-color 0.3s ease; 
+}
+
+#controlPanel button:hover {
+  background-color: #777; 
+}
+
+.btn-container { 
+  display: flex; 
+  justify-content: space-between; 
+  margin-top: 5px; 
+}
+
+#extraInfo {
+  margin-top: 12px; 
+  padding: 10px; 
+  background: rgba(0,0,0,0.8); 
+  border-radius: 5px; 
+  font-size: 13px; 
+  color: #ccc; 
+}
+
+#infoModal {
+  display: none; 
+  position: fixed; 
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(30,30,40,0.98); 
+  padding: 30px;
+  border-radius: 12px; 
+  z-index: 30; 
+  width: 85%; 
+  max-height: 85vh; 
+  overflow-y: auto;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.7); 
+}
+
+#infoModal h2 { 
+  text-align: center; 
+  font-size: 28px; 
+  margin-bottom: 20px; 
+  font-weight: normal; 
+}
+
+#infoModal p { 
+  font-size: 15px; 
+  line-height: 1.6; 
+  color: #ddd; 
+}
+
+#btnCerrarInfo {
+  display: block; 
+  margin: 20px auto 0 auto; 
+  padding: 10px 20px;
+  border: none; 
+  border-radius: 5px; 
+  background-color: #666;
+  color: #fff; 
+  cursor: pointer;
+  font-size: 15px; 
+  transition: background-color 0.3s ease; 
+}
+
+#btnCerrarInfo:hover {
+  background-color: #888; 
+}
+
+#listaCuerpos {
+  margin-top: 12px; 
+  border: 1px solid #555; 
+  border-radius: 6px; 
+  padding: 10px;
+  background-color: #1a1a2e; 
+}
+
+.cuerpoItem {
+  border-bottom: 1px solid #555;
+  padding: 15px 0; 
+  margin-bottom: 10px;
+}
+
+.cuerpoItem:last-child { 
+  border-bottom: none; 
+}
+
+.campo { 
+  margin-top: 10px; 
+}
+
+.campo label { 
+  font-size: 13px; 
+  color: #ccc; 
+}
+
+.campo input { 
+  width: calc(100% - 8px); 
+  padding: 8px; 
+  font-size: 13px; 
+  border: 1px solid #666; 
+  border-radius: 4px;
+  background-color: #222; 
+  color: #eee; 
+}
+
+.btnEliminar {
+  background-color: #c0392b; 
+  color: #fff; 
+  border: none; 
+  border-radius: 4px;
+  padding: 6px 12px; 
+  cursor: pointer; 
+  font-size: 13px; 
+  margin-top: 8px; 
+  transition: background-color 0.3s ease; 
+}
+
+.btnEliminar:hover {
+  background-color: #e74c3c; 
+}
+
+#formAgregar {
+  display: none; 
+  position: fixed; 
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(30,30,40,0.95); 
+  padding: 30px;
+  border-radius: 12px; 
+  z-index: 20; 
+  width: 350px; 
+  box-shadow: 0 8px 16px rgba(0,0,0,0.7); 
+}
+
+#formAgregar h3 { 
+  text-align: center; 
+  margin-top: 0; 
+  margin-bottom: 20px; 
+  font-size: 24px; 
+  font-weight: normal; 
+}
+
+#formAgregar label { 
+  display: block; 
+  margin-top: 12px; 
+  font-size: 15px; 
+  color: #ddd; 
+}
+
+#formAgregar input[type="number"],
+#formAgregar input[type="color"] {
+  width: calc(100% - 10px); 
+  padding: 8px; 
+  margin-top: 6px;
+  margin-bottom: 10px; 
+  box-sizing: border-box; 
+  font-size: 14px; 
+  border: 1px solid #666; 
+  border-radius: 4px;
+  background-color: #222; 
+  color: #eee; 
+}
+
+#formAgregar button {
+  width: 100%; 
+  padding: 10px; 
+  margin-top: 15px;
+  border: none; 
+  border-radius: 5px; 
+  cursor: pointer; 
+  font-size: 15px; 
+  background-color: #555; 
+  color: #fff;
+  transition: background-color 0.3s ease; 
+}
+
+#formAgregar button:hover {
+  opacity: 0.9;
+  background-color: #777; 
+}
+
+#formAgregar button#btnCancelarAgregar {
+  background-color: #777; 
+}
+
+#formAgregar button#btnCancelarAgregar:hover {
+  background-color: #999; 
+}
+
+.scrollable-section {
+  max-height: 400px; 
+  overflow-y: auto;
+  margin-top: 10px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: #1a1a2e;
+}
+
+.scrollable-section h3 {
+  margin-top: 0; 
+  margin-bottom: 10px;
+}
+
+.scrollable-section #listaCuerpos {
+  border: none; 
+  padding: 0; 
+  background-color: transparent; 
+  margin-top: 0; 
+}
+
+@media (max-width: 600px) {
+  #controlPanel { 
+    width: 95%; 
+    right: 2.5%; 
+    top: 15px; 
+    padding: 15px; 
+  }
+  #infoModal, #formAgregar {
+    width: 90%; 
+    padding: 20px; 
+  }
+  #infoModal h2, #formAgregar h3 {
+    font-size: 22px; 
+  }
+  #infoModal p, #formAgregar label,
+  #controlPanel label,
+  #controlPanel button, #btnTogglePanel,
+  #globalZoomToggleContainer button,
+  .btnEliminar, #formAgregar button,
+  .campo label, .campo input {
+    font-size: 14px; 
+  }
+}
