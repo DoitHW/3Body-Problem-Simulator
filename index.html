@@ -426,9 +426,6 @@
       <h2>Controles</h2>
     </div>
     <div class="btn-container">
-      <button id="btnInfo" style="width:100%;">Información</button>
-    </div>
-    <div class="btn-container">
       <button id="btnPausar">Pausar</button>
       <button id="btnReiniciar">Reiniciar</button>
     </div>
@@ -463,8 +460,12 @@
     <div id="globalZoomToggleContainer">
       <button id="btnToggleAutoZoom">Desactivar Zoom Automático</button>
     </div>
-    <h3>Cuerpos</h3>
+
+    <div class="btn-container">
+      <button id="btnInfo" style="width:100%;">Información</button>
+    </div>
     <div class="scrollable-section">
+      <h3>Cuerpos</h3>
       <div id="listaCuerpos"></div>
     </div>
     <button id="btnAgregar" style="width:100%;">Añadir Cuerpo</button>
@@ -532,7 +533,6 @@
           "btnEliminar": "Eliminar",
           "trackGlobal": "Tracking Global",
           "trackCuerpo": "Track cuerpo",
-          // Nuevas claves para el modal de información
           "infoModalTitle": "Manual de Instrucciones y Configuraciones",
           "infoModalContent": `
             <h3>Manual de Instrucciones</h3>
@@ -550,7 +550,7 @@
               <li><strong>Track cuerpo N:</strong> La cámara sigue el cuerpo seleccionado.</li>
             </ul>
             <h4>Agregar y Modificar Cuerpos</h4>
-            <p>En la sección "Cuerpos" puedes modificar individualmente la masa, velocidad, posición y color de cada cuerpo. Al arrastrarlos en el canvas, se actualiza su posición.</p>
+            <p>En la sección "Cuerpos" puedes modificar individualmente la masa, velocidad, posición y color de cada cuerpo. Los cambios se guardan en la configuración personalizada. Si deseas volver a los valores por defecto, utiliza el botón "Restablecer por defecto".</p>
             <h3>Información sobre las Configuraciones</h3>
             <ul>
               <li><strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.</li>
@@ -590,7 +590,6 @@
           "btnEliminar": "Delete",
           "trackGlobal": "Global Tracking",
           "trackCuerpo": "Track body",
-          // Nuevas claves para el modal de información
           "infoModalTitle": "Instructions and Configurations Manual",
           "infoModalContent": `
             <h3>Instructions</h3>
@@ -608,7 +607,7 @@
               <li><strong>Track body N:</strong> The camera follows the selected body.</li>
             </ul>
             <h4>Add and Modify Bodies</h4>
-            <p>In the "Bodies" section, you can individually modify the mass, speed, position, and color of each body. Dragging them on the canvas updates their position.</p>
+            <p>In the "Bodies" section, you can individually modify the mass, speed, position, and color of each body. The changes are saved in the custom configuration. To revert to the default values, use the "Reset to Default" button.</p>
             <h3>Configurations Information</h3>
             <ul>
               <li><strong>Lagrange:</strong> Three equal masses forming an equilateral triangle in rotation.</li>
@@ -650,8 +649,8 @@
     
         // Actualizar lista de cuerpos
         const listaCuerpos = document.getElementById('listaCuerpos');
-        Array.from(listaCuerpos.children).forEach((cuerpoItem, index) => {
-          cuerpoItem.querySelector('strong').textContent = `${langData["cuerpoLabel"]} ${index+1}`;
+        Array.from(listaCuerpos.children).forEach((cuerpoItem, idx) => {
+          cuerpoItem.querySelector('strong').textContent = `${langData["cuerpoLabel"]} ${idx+1}`;
           cuerpoItem.querySelector('.campo:nth-child(2) label').textContent = langData["masaCampoLabel"];
           cuerpoItem.querySelector('.campo:nth-child(3) label').textContent = langData["vxCampoLabel"];
           cuerpoItem.querySelector('.campo:nth-child(4) label').textContent = langData["vyCampoLabel"];
@@ -768,54 +767,81 @@
             const div = document.createElement('div');
             div.className = "cuerpoItem";
             div.innerHTML = `<strong style="color: ${b.color};">${langData["cuerpoLabel"]} ${idx+1}</strong>`;
+    
             const masaDiv = document.createElement('div');
             masaDiv.className = "campo";
             masaDiv.innerHTML = `<label>${langData["masaCampoLabel"]}</label>
               <input type="number" step="0.1" value="${b.m}">`;
-            masaDiv.querySelector('input').addEventListener('change', function() { b.m = parseFloat(this.value); });
+            masaDiv.querySelector('input').addEventListener('change', function() { 
+              b.m = parseFloat(this.value);
+              config3Body.personalizada[idx].m = b.m;
+            });
             div.appendChild(masaDiv);
+    
             const vxDiv = document.createElement('div');
             vxDiv.className = "campo";
             vxDiv.innerHTML = `<label>${langData["vxCampoLabel"]}</label>
               <input type="number" step="0.1" value="${b.vx.toFixed(3)}">`;
-            vxDiv.querySelector('input').addEventListener('change', function() { b.vx = parseFloat(this.value); });
+            vxDiv.querySelector('input').addEventListener('change', function() { 
+              b.vx = parseFloat(this.value);
+              config3Body.personalizada[idx].vx = b.vx;
+            });
             div.appendChild(vxDiv);
+    
             const vyDiv = document.createElement('div');
             vyDiv.className = "campo";
             vyDiv.innerHTML = `<label>${langData["vyCampoLabel"]}</label>
               <input type="number" step="0.1" value="${b.vy.toFixed(3)}">`;
-            vyDiv.querySelector('input').addEventListener('change', function() { b.vy = parseFloat(this.value); });
+            vyDiv.querySelector('input').addEventListener('change', function() { 
+              b.vy = parseFloat(this.value);
+              config3Body.personalizada[idx].vy = b.vy;
+            });
             div.appendChild(vyDiv);
+    
             const colorDiv = document.createElement('div');
             colorDiv.className = "campo";
             colorDiv.innerHTML = `<label>${langData["colorCampoLabel"]}</label>
               <input type="color" value="${b.color}">`;
             colorDiv.querySelector('input').addEventListener('change', function() {
               b.color = this.value;
+              config3Body.personalizada[idx].color = b.color;
               div.querySelector('strong').style.color = b.color;
             });
             div.appendChild(colorDiv);
+    
             const pxDiv = document.createElement('div');
             pxDiv.className = "campo";
             pxDiv.innerHTML = `<label>${langData["posXCampoLabel"]}</label>
               <input type="number" step="0.1" value="${b.x.toFixed(3)}">`;
-            pxDiv.querySelector('input').addEventListener('change', function() { b.x = parseFloat(this.value); b.trail = []; });
+            pxDiv.querySelector('input').addEventListener('change', function() { 
+              b.x = parseFloat(this.value); 
+              config3Body.personalizada[idx].x = b.x;
+              b.trail = []; 
+            });
             div.appendChild(pxDiv);
+    
             const pyDiv = document.createElement('div');
             pyDiv.className = "campo";
             pyDiv.innerHTML = `<label>${langData["posYCampoLabel"]}</label>
               <input type="number" step="0.1" value="${b.y.toFixed(3)}">`;
-            pyDiv.querySelector('input').addEventListener('change', function() { b.y = parseFloat(this.value); b.trail = []; });
+            pyDiv.querySelector('input').addEventListener('change', function() { 
+              b.y = parseFloat(this.value); 
+              config3Body.personalizada[idx].y = b.y;
+              b.trail = []; 
+            });
             div.appendChild(pyDiv);
+    
             const btnEliminar = document.createElement('button');
             btnEliminar.className = "btnEliminar";
             btnEliminar.textContent = langData["btnEliminar"];
             btnEliminar.addEventListener('click', () => {
               sim.bodies.splice(idx, 1);
+              config3Body.personalizada.splice(idx, 1);
               actualizarListaCuerpos();
               actualizarTrackSelect();
             });
             div.appendChild(btnEliminar);
+    
             lista.appendChild(div);
           });
         }
@@ -1120,6 +1146,7 @@
             document.getElementById('scaleValor').textContent = (this.scale / this.factorBase);
             document.getElementById('speedRange').value = this.speed;
             document.getElementById('speedValor').textContent = this.speed;
+            // Aquí usamos los valores actuales de config3Body.personalizada (ya modificados por el usuario)
             this.bodies = [...config3Body.personalizada].map(c => new Body(c));
           } else {
             this.dt = (name === "butterfly") ? 0.0005 : 0.001;
@@ -1136,6 +1163,9 @@
             document.getElementById('extraInfo').innerHTML = (name === "butterfly") ?
               "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović." : "";
           }
+          // Reiniciamos la vista de la cámara
+          this.centerX = 0;
+          this.centerY = 0;
           this.bodies.forEach(b => b.trail = []);
           actualizarListaCuerpos();
           actualizarTrackSelect();
@@ -1157,7 +1187,6 @@
           }
         }
         update() {
-          // Si no está pausada, actualizamos la física y tracking
           if (!this.paused) {
             for (let i = 0; i < this.speed; i++) {
               this.computeForces();
@@ -1198,7 +1227,7 @@
               }
             }
           }
-          // Siempre actualizamos la escala, incluso si la simulación está pausada
+          // Siempre actualizamos la escala (zoom), incluso si está pausada
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         draw() {
@@ -1224,6 +1253,7 @@
         document.getElementById('speedRange').value = "1";
         document.getElementById('speedValor').textContent = "1";
         document.getElementById('trackSelect').value = "none";
+        // Restablece los valores por defecto para la configuración personalizada
         config3Body.personalizada = JSON.parse(JSON.stringify(originalPersonalizada));
         sim.loadConfiguration("personalizada");
         sim.centerX = 0;
@@ -1241,11 +1271,15 @@
       });
     
       document.getElementById('btnReiniciar').addEventListener('click', () => {
+        // Al reiniciar, se usa la configuración personalizada tal como está (con modificaciones)
         sim.loadConfiguration(document.getElementById('configSelect').value);
       });
     
+      // Al cambiar la configuración, reiniciamos la vista centrando la cámara sin restablecer la configuración personalizada
       document.getElementById('configSelect').addEventListener('change', (e) => {
         sim.loadConfiguration(e.target.value);
+        sim.centerX = 0;
+        sim.centerY = 0;
       });
     
       document.getElementById('dtRange').addEventListener('input', (e) => {
@@ -1307,6 +1341,7 @@
           color = "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         }
         const newBody = new Body({ m, x, y, vx, vy, color });
+        // Se agrega al array de configuración personalizada para conservar los cambios
         config3Body.personalizada.push({ m, x, y, vx, vy, color });
         sim.bodies.push(newBody);
         actualizarListaCuerpos();
