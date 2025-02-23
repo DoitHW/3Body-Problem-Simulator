@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Simulador Tres Cuerpos – Corrección Visualización</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0; padding: 0; overflow: hidden;
@@ -13,13 +12,14 @@
       height: 100%;
       touch-action: none;
     }
+    
     canvas {
       display: block; 
       background: radial-gradient(ellipse at center, #1a1a2e 0%, #050510 100%);
       width: 100%; 
       height: 100%;
     }
-    /* Botón de toggle fuera del panel */
+    
     #btnTogglePanel {
       position: fixed; 
       top: 20px; 
@@ -34,9 +34,37 @@
       cursor: pointer;
       transition: background-color 0.3s ease; 
     }
+    
     #btnTogglePanel:hover {
       background-color: #555; 
     }
+    
+    #langSelect {
+      position: fixed;
+      top: 20px;
+      left: 140px; 
+      z-index: 20;
+      padding: 10px;
+      border: 1px solid #555;
+      border-radius: 5px;
+      background-color: #333;
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      appearance: none; 
+      -webkit-appearance: none; 
+      -moz-appearance: none; 
+      background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+      background-repeat: no-repeat;
+      background-position-x: 100%;
+      background-position-y: 5px;
+      padding-right: 25px; 
+    }
+    
+    #langSelect:hover {
+      background-color: #555;
+    }
+    
     #controlPanel {
       position: fixed; 
       top: 20px; 
@@ -52,6 +80,7 @@
       display: flex;
       flex-direction: column;
     }
+    
     #panelHeader {
       display: flex; 
       justify-content: center; 
@@ -60,16 +89,18 @@
       border-bottom: 1px solid #555; 
       padding-bottom: 10px;
     }
+    
     #panelHeader h2 { 
       margin: 0; 
       font-size: 24px; 
       font-weight: normal; 
     }
-    /* Contenedor para toggle de zoom automático */
+    
     #globalZoomToggleContainer {
       margin-top: 12px; 
       display: none;
     }
+    
     #globalZoomToggleContainer button {
       width: 100%; 
       padding: 10px;
@@ -81,15 +112,18 @@
       cursor: pointer;
       transition: background-color 0.3s ease; 
     }
+    
     #globalZoomToggleContainer button:hover {
       background-color: #666; 
     }
+    
     #controlPanel label {
       display: block; 
       margin-top: 10px; 
       font-size: 15px; 
       color: #ddd; 
     }
+    
     #controlPanel input[type="number"],
     #controlPanel input[type="color"],
     #controlPanel input[type="range"],
@@ -106,6 +140,7 @@
       background-color: #222; 
       color: #eee; 
     }
+    
     #controlPanel button {
       width: 49%; 
       padding: 10px; 
@@ -118,14 +153,17 @@
       color: #fff;
       transition: background-color 0.3s ease; 
     }
+    
     #controlPanel button:hover {
       background-color: #777; 
     }
+    
     .btn-container { 
       display: flex; 
       justify-content: space-between; 
       margin-top: 5px; 
     }
+    
     #extraInfo {
       margin-top: 12px; 
       padding: 10px; 
@@ -134,6 +172,7 @@
       font-size: 13px; 
       color: #ccc; 
     }
+    
     #infoModal {
       display: none; 
       position: fixed; 
@@ -149,17 +188,37 @@
       overflow-y: auto;
       box-shadow: 0 8px 16px rgba(0,0,0,0.7); 
     }
+    
     #infoModal h2 { 
       text-align: center; 
       font-size: 28px; 
       margin-bottom: 20px; 
       font-weight: normal; 
     }
+    
+    #infoModal h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+    }
+    
     #infoModal p { 
       font-size: 15px; 
       line-height: 1.6; 
       color: #ddd; 
     }
+    
+    #infoModal ul {
+      margin: 0 0 10px 20px;
+      padding: 0;
+      color: #ddd;
+    }
+    
+    #infoModal li {
+      margin-bottom: 5px;
+    }
+    
     #btnCerrarInfo {
       display: block; 
       margin: 20px auto 0 auto; 
@@ -172,9 +231,11 @@
       font-size: 15px; 
       transition: background-color 0.3s ease; 
     }
+    
     #btnCerrarInfo:hover {
       background-color: #888; 
     }
+    
     #listaCuerpos {
       margin-top: 12px; 
       border: 1px solid #555; 
@@ -182,21 +243,26 @@
       padding: 10px;
       background-color: #1a1a2e; 
     }
+    
     .cuerpoItem {
       border-bottom: 1px solid #555;
       padding: 15px 0; 
       margin-bottom: 10px;
     }
+    
     .cuerpoItem:last-child { 
       border-bottom: none; 
     }
+    
     .campo { 
       margin-top: 10px; 
     }
+    
     .campo label { 
       font-size: 13px; 
       color: #ccc; 
     }
+    
     .campo input { 
       width: calc(100% - 8px); 
       padding: 8px; 
@@ -206,6 +272,7 @@
       background-color: #222; 
       color: #eee; 
     }
+    
     .btnEliminar {
       background-color: #c0392b; 
       color: #fff; 
@@ -217,9 +284,11 @@
       margin-top: 8px; 
       transition: background-color 0.3s ease; 
     }
+    
     .btnEliminar:hover {
       background-color: #e74c3c; 
     }
+    
     #formAgregar {
       display: none; 
       position: fixed; 
@@ -233,6 +302,7 @@
       width: 350px; 
       box-shadow: 0 8px 16px rgba(0,0,0,0.7); 
     }
+    
     #formAgregar h3 { 
       text-align: center; 
       margin-top: 0; 
@@ -240,12 +310,14 @@
       font-size: 24px; 
       font-weight: normal; 
     }
+    
     #formAgregar label { 
       display: block; 
       margin-top: 12px; 
       font-size: 15px; 
       color: #ddd; 
     }
+    
     #formAgregar input[type="number"],
     #formAgregar input[type="color"] {
       width: calc(100% - 10px); 
@@ -259,6 +331,7 @@
       background-color: #222; 
       color: #eee; 
     }
+    
     #formAgregar button {
       width: 100%; 
       padding: 10px; 
@@ -271,16 +344,20 @@
       color: #fff;
       transition: background-color 0.3s ease; 
     }
+    
     #formAgregar button:hover {
       opacity: 0.9;
       background-color: #777; 
     }
+    
     #formAgregar button#btnCancelarAgregar {
       background-color: #777; 
     }
+    
     #formAgregar button#btnCancelarAgregar:hover {
       background-color: #999; 
     }
+    
     .scrollable-section {
       max-height: 400px; 
       overflow-y: auto;
@@ -288,18 +365,21 @@
       border: 1px solid #555;
       border-radius: 6px;
       padding: 10px;
-      background-color: #1a1a2e; 
+      background-color: #1a1a2e;
     }
+    
     .scrollable-section h3 {
       margin-top: 0; 
       margin-bottom: 10px;
     }
+    
     .scrollable-section #listaCuerpos {
       border: none; 
       padding: 0; 
       background-color: transparent; 
       margin-top: 0; 
     }
+    
     @media (max-width: 600px) {
       #controlPanel { 
         width: 95%; 
@@ -324,18 +404,23 @@
       }
     }
   </style>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <canvas id="canvas"></canvas>
-  
+
   <!-- Botón de toggle siempre visible -->
   <button id="btnTogglePanel">Ocultar Panel</button>
-  
-  <div id="controlPanel" style="display:block;"> 
+  <select id="langSelect">
+    <option value="es">Español</option>
+    <option value="en">English</option>
+  </select>
+
+  <div id="controlPanel" style="display:block;">
     <div id="panelHeader">
       <h2>Controles</h2>
     </div>
-	<div class="btn-container">
+    <div class="btn-container">
       <button id="btnInfo" style="width:100%;">Información</button>
     </div>
     <div class="btn-container">
@@ -345,7 +430,7 @@
     <div class="btn-container">
       <button id="btnRestablecer" style="width:98%;">Restablecer por defecto</button>
     </div>
-    
+
     <label for="configSelect">Configuración:</label>
     <select id="configSelect">
       <option value="personalizada" selected>Personalizada</option>
@@ -355,16 +440,16 @@
       <option value="butterfly">Butterfly‑1</option>
     </select>
     <div id="extraInfo"></div>
-    
+
     <label for="dtRange">Paso temporal (dt): <span id="dtValor">0.001</span></label>
     <input type="range" id="dtRange" min="0.0001" max="0.01" step="0.0001" value="0.001">
-    
+
     <label for="scaleRange">Escala: <span id="scaleValor">1</span></label>
     <input type="range" id="scaleRange" min="0.1" max="5" step="0.1" value="1">
-    
+
     <label for="speedRange">Velocidad: <span id="speedValor">1</span>x</label>
     <input type="range" id="speedRange" min="0.1" max="50" step="0.1" value="1">
-    
+
     <label for="trackSelect">Tracking Cámara:</label>
     <select id="trackSelect">
       <option value="none">Ninguno</option>
@@ -375,47 +460,21 @@
     </div>
     <h3>Cuerpos</h3>
     <div class="scrollable-section">
-      
       <div id="listaCuerpos"></div>
     </div>
     <button id="btnAgregar" style="width:100%;">Añadir Cuerpo</button>
     <small style="color:#aaa; display:block; margin-top:10px;">Arrastra los cuerpos o, si no tocas ninguno, arrastra para mover la cámara.</small>
   </div>
-  
-<div id="infoModal">
-  <h2>Manual de Instrucciones y Configuraciones</h2>
-  <p>
-    <strong>Uso del Simulador:</strong><br>
-    Este simulador muestra la interacción gravitacional entre tres cuerpos. Puedes seleccionar diferentes configuraciones predefinidas (por ejemplo, Lagrange, Euler, etc.) o utilizar la opción personalizada para crear tu propio sistema.
-  </p>
-  <p>
-    <strong>Controles Principales:</strong><br>
-    - <em>Paso temporal (dt):</em> Controla el intervalo de tiempo de la simulación. Valores más pequeños ofrecen mayor precisión pero requieren más cálculos.<br>
-    - <em>Escala:</em> Ajusta el zoom de la vista. Puedes utilizar la rueda del ratón o el control para acercar o alejar.<br>
-    - <em>Velocidad:</em> Define la cantidad de iteraciones por fotograma. Aumentar este valor acelera la simulación.
-  </p>
-  <p>
-    <strong>Tracking de Cámara:</strong><br>
-    - <em>Ninguno:</em> La cámara se puede mover manualmente arrastrando el lienzo.<br>
-    - <em>Tracking Global:</em> La cámara se centra automáticamente en el sistema. También puedes activar o desactivar el zoom automático.<br>
-    - <em>Track cuerpo N:</em> La cámara sigue el cuerpo seleccionado.
-  </p>
-  <p>
-    <strong>Agregar y Modificar Cuerpos:</strong><br>
-    En la sección "Cuerpos" puedes modificar individualmente la masa, velocidad, posición y color de cada cuerpo. Al arrastrarlos en el canvas, se actualiza su posición.
-  </p>
-  <hr>
-  <p>
-    <strong>Información sobre las Configuraciones:</strong><br>
-    <strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.<br>
-    <strong>El Ocho:</strong> Solución de Chenciner–Montgomery donde tres masas siguen una trayectoria en forma de 8.<br>
-    <strong>Euler:</strong> Tres masas en configuración colineal con movimiento periódico.<br>
-    <strong>Butterfly‑1:</strong> Solución de Šuvakov–Dmitrašinović con trayectoria tipo mariposa.
-  </p>
-  <button id="btnCerrarInfo" style="width: 100%">Cerrar</button>
-</div>
 
-  
+  <!-- Modal de Información modificado -->
+  <div id="infoModal">
+    <h2 data-key="infoModalTitle">Manual de Instrucciones y Configuraciones</h2>
+    <div id="infoModalContent">
+      <!-- Se inyecta el contenido mediante JavaScript -->
+    </div>
+    <button id="btnCerrarInfo" style="width: 100%">Cerrar</button>
+  </div>
+
   <div id="formAgregar">
     <h3>Nuevo Cuerpo</h3>
     <label for="nuevaMasa">Masa:</label>
@@ -433,46 +492,343 @@
     <button id="btnConfirmarAgregar">Agregar</button>
     <button id="btnCancelarAgregar" style="background-color:#777;">Cancelar</button>
   </div>
-  
+
   <script>
     (function(){
+      // Traducciones
+      const translations = {
+        es: {
+          "btnTogglePanel": "Ocultar Panel",
+          "btnPausar": "Pausar",
+          "btnReiniciar": "Reiniciar",
+          "btnRestablecer": "Restablecer por defecto",
+          "configLabel": "Configuración:",
+          "configPersonalizada": "Personalizada",
+          "configLagrange": "Lagrange (Triángulo)",
+          "configFigura8": "El Ocho",
+          "configEuler": "Euler (Colineal)",
+          "configButterfly": "Butterfly‑1",
+          "dtLabel": "Paso temporal (dt):",
+          "scaleLabel": "Escala:",
+          "speedLabel": "Velocidad:",
+          "trackLabel": "Tracking Cámara:",
+          "trackNinguno": "Ninguno",
+          "btnToggleAutoZoom": "Desactivar Zoom Automático",
+          "btnInfo": "Información",
+          "btnAddBody": "Añadir Cuerpo",
+          "dragInfo": "Arrastra los cuerpos o, si no tocas ninguno, arrastra para mover la cámara.",
+          "cuerpoLabel": "Cuerpo",
+          "masaCampoLabel": "Masa:",
+          "vxCampoLabel": "Vel X:",
+          "vyCampoLabel": "Vel Y:",
+          "colorCampoLabel": "Color:",
+          "posXCampoLabel": "Pos X:",
+          "posYCampoLabel": "Pos Y:",
+          "btnEliminar": "Eliminar",
+          "trackGlobal": "Tracking Global",
+          "trackCuerpo": "Track cuerpo",
+          // Nuevas claves para el modal de información
+          "infoModalTitle": "Manual de Instrucciones y Configuraciones",
+          "infoModalContent": `
+            <h3>Manual de Instrucciones</h3>
+            <p>Este simulador muestra la interacción gravitacional entre tres cuerpos. Puedes seleccionar diferentes configuraciones predefinidas o utilizar la opción personalizada para crear tu propio sistema.</p>
+            <h4>Controles Principales</h4>
+            <ul>
+              <li><strong>Paso temporal (dt):</strong> Controla el intervalo de tiempo de la simulación. Valores más pequeños ofrecen mayor precisión pero requieren más cálculos.</li>
+              <li><strong>Escala:</strong> Ajusta el zoom de la vista. Utiliza la rueda del ratón o el control para acercar o alejar.</li>
+              <li><strong>Velocidad:</strong> Define la cantidad de iteraciones por fotograma. Aumentar este valor acelera la simulación.</li>
+            </ul>
+            <h4>Tracking de Cámara</h4>
+            <ul>
+              <li><strong>Ninguno:</strong> La cámara se mueve manualmente arrastrando el lienzo.</li>
+              <li><strong>Tracking Global:</strong> La cámara se centra automáticamente en el sistema y puede activar o desactivar el zoom automático.</li>
+              <li><strong>Track cuerpo N:</strong> La cámara sigue el cuerpo seleccionado.</li>
+            </ul>
+            <h4>Agregar y Modificar Cuerpos</h4>
+            <p>En la sección "Cuerpos" puedes modificar individualmente la masa, velocidad, posición y color de cada cuerpo. Al arrastrarlos en el canvas, se actualiza su posición.</p>
+            <h3>Información sobre las Configuraciones</h3>
+            <ul>
+              <li><strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.</li>
+              <li><strong>El Ocho:</strong> Solución de Chenciner–Montgomery donde tres masas siguen una trayectoria en forma de 8.</li>
+              <li><strong>Euler:</strong> Tres masas en configuración colineal con movimiento periódico.</li>
+              <li><strong>Butterfly‑1:</strong> Solución de Šuvakov–Dmitrašinović con trayectoria tipo mariposa.</li>
+            </ul>
+          `
+        },
+        en: {
+          "btnTogglePanel": "Hide Panel",
+          "btnPausar": "Pause",
+          "btnReiniciar": "Restart",
+          "btnRestablecer": "Reset to Default",
+          "configLabel": "Configuration:",
+          "configPersonalizada": "Custom",
+          "configLagrange": "Lagrange (Triangle)",
+          "configFigura8": "Figure Eight",
+          "configEuler": "Euler (Collinear)",
+          "configButterfly": "Butterfly‑1",
+          "dtLabel": "Time step (dt):",
+          "scaleLabel": "Scale:",
+          "speedLabel": "Speed:",
+          "trackLabel": "Camera Tracking:",
+          "trackNinguno": "None",
+          "btnToggleAutoZoom": "Disable Auto Zoom",
+          "btnInfo": "Information",
+          "btnAddBody": "Add Body",
+          "dragInfo": "Drag bodies, or drag the background to move the camera.",
+          "cuerpoLabel": "Body",
+          "masaCampoLabel": "Mass:",
+          "vxCampoLabel": "X Vel:",
+          "vyCampoLabel": "Y Vel:",
+          "colorCampoLabel": "Color:",
+          "posXCampoLabel": "X Pos:",
+          "posYCampoLabel": "Y Pos:",
+          "btnEliminar": "Delete",
+          "trackGlobal": "Global Tracking",
+          "trackCuerpo": "Track body",
+          // Nuevas claves para el modal de información
+          "infoModalTitle": "Instructions and Configurations Manual",
+          "infoModalContent": `
+            <h3>Instructions</h3>
+            <p>This simulator shows the gravitational interaction between three bodies. You can select different predefined configurations or use the custom option to create your own system.</p>
+            <h4>Main Controls</h4>
+            <ul>
+              <li><strong>Time Step (dt):</strong> Controls the simulation's time interval. Smaller values offer greater precision but require more calculations.</li>
+              <li><strong>Scale:</strong> Adjusts the zoom of the view. Use the mouse wheel or the control to zoom in or out.</li>
+              <li><strong>Speed:</strong> Defines the number of iterations per frame. Increasing this value speeds up the simulation.</li>
+            </ul>
+            <h4>Camera Tracking</h4>
+            <ul>
+              <li><strong>None:</strong> The camera can be moved manually by dragging the canvas.</li>
+              <li><strong>Global Tracking:</strong> The camera automatically centers on the system and can toggle automatic zoom.</li>
+              <li><strong>Track body N:</strong> The camera follows the selected body.</li>
+            </ul>
+            <h4>Add and Modify Bodies</h4>
+            <p>In the "Bodies" section, you can individually modify the mass, speed, position, and color of each body. Dragging them on the canvas updates their position.</p>
+            <h3>Configurations Information</h3>
+            <ul>
+              <li><strong>Lagrange:</strong> Three equal masses forming an equilateral triangle in rotation.</li>
+              <li><strong>Figure Eight:</strong> Chenciner–Montgomery solution where three masses follow a figure-8 trajectory.</li>
+              <li><strong>Euler:</strong> Three bodies in a collinear configuration with periodic motion.</li>
+              <li><strong>Butterfly‑1:</strong> Šuvakov–Dmitrašinović solution with a butterfly-like trajectory.</li>
+            </ul>
+          `
+        }
+      };
+
+      function updateText(lang) {
+        const langData = translations[lang];
+        if (!langData) {
+          console.warn(`No translations found for language: ${lang}`);
+          return;
+        }
+        document.getElementById('btnTogglePanel').textContent = langData["btnTogglePanel"];
+        document.getElementById('btnPausar').textContent = langData["btnPausar"];
+        document.getElementById('btnReiniciar').textContent = langData["btnReiniciar"];
+        document.getElementById('btnRestablecer').textContent = langData["btnRestablecer"];
+        document.querySelector('label[for="configSelect"]').textContent = langData["configLabel"];
+        document.querySelector('#configSelect option[value="personalizada"]').textContent = langData["configPersonalizada"];
+        document.querySelector('#configSelect option[value="lagrange"]').textContent = langData["configLagrange"];
+        document.querySelector('#configSelect option[value="figura8"]').textContent = langData["configFigura8"];
+        document.querySelector('#configSelect option[value="euler"]').textContent = langData["configEuler"];
+        document.querySelector('#configSelect option[value="butterfly"]').textContent = langData["configButterfly"];
+        document.querySelector('label[for="dtRange"]').childNodes[0].textContent = langData["dtLabel"];
+        document.querySelector('label[for="scaleRange"]').childNodes[0].textContent = langData["scaleLabel"];
+        document.querySelector('label[for="speedRange"]').childNodes[0].textContent = langData["speedLabel"];
+        document.querySelector('label[for="trackSelect"]').textContent = langData["trackLabel"];
+        document.querySelector('#trackSelect option[value="none"]').textContent = langData["trackNinguno"];
+        document.getElementById('btnToggleAutoZoom').textContent = langData["btnToggleAutoZoom"];
+        document.getElementById('btnInfo').textContent = langData["btnInfo"];
+        document.querySelector('#controlPanel small').textContent = langData["dragInfo"];
+        // Actualizar el contenido del modal de información
+        document.querySelector('#infoModal h2').textContent = langData["infoModalTitle"];
+        document.getElementById('infoModalContent').innerHTML = langData["infoModalContent"];
+    
+        // Actualizar lista de cuerpos
+        const listaCuerpos = document.getElementById('listaCuerpos');
+        Array.from(listaCuerpos.children).forEach((cuerpoItem, index) => {
+          cuerpoItem.querySelector('strong').textContent = `${langData["cuerpoLabel"]} ${index+1}`;
+          cuerpoItem.querySelector('.campo:nth-child(2) label').textContent = langData["masaCampoLabel"];
+          cuerpoItem.querySelector('.campo:nth-child(3) label').textContent = langData["vxCampoLabel"];
+          cuerpoItem.querySelector('.campo:nth-child(4) label').textContent = langData["vyCampoLabel"];
+          cuerpoItem.querySelector('.campo:nth-child(5) label').textContent = langData["colorCampoLabel"];
+          cuerpoItem.querySelector('.campo:nth-child(6) label').textContent = langData["posXCampoLabel"];
+          cuerpoItem.querySelector('.campo:nth-child(7) label').textContent = langData["posYCampoLabel"];
+          cuerpoItem.querySelector('.btnEliminar').textContent = langData["btnEliminar"];
+        });
+    
+        // Actualizar opciones del tracking de cámara
+        const trackSelect = document.getElementById('trackSelect');
+        const currentTrackValue = trackSelect.value;
+        trackSelect.innerHTML = '';
+        let optionNone = document.createElement('option');
+        optionNone.value = 'none';
+        optionNone.textContent = langData["trackNinguno"];
+        trackSelect.appendChild(optionNone);
+        let optionGlobal = document.createElement('option');
+        optionGlobal.value = 'global';
+        optionGlobal.textContent = langData["trackGlobal"];
+        trackSelect.appendChild(optionGlobal);
+        if (typeof sim !== 'undefined' && sim.bodies) {
+          sim.bodies.forEach((b, idx) => {
+            let op = document.createElement('option');
+            op.value = `body${idx}`;
+            op.textContent = `${langData["trackCuerpo"]} ${idx+1}`;
+            trackSelect.appendChild(op);
+          });
+        }
+        trackSelect.value = currentTrackValue;
+        const globalZoomContainer = document.getElementById('globalZoomToggleContainer');
+        if (trackSelect.value === "global") { 
+          globalZoomContainer.style.display = "block"; 
+        } else { 
+          globalZoomContainer.style.display = "none"; 
+        }
+      }
+    
+      document.getElementById('langSelect').addEventListener('change', (e) => {
+        const selectedLang = e.target.value;
+        updateText(selectedLang);
+      });
+    
+      const initialLang = 'es';
+      document.getElementById('langSelect').value = initialLang;
+    
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
-      
+    
       function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
       }
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
-      
-      // Convertir coordenadas de pantalla a mundo (eje Y normal: positivos hacia arriba)
+    
       function screenToWorld(screenX, screenY) {
         return {
           x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
           y: (canvas.height/2 - screenY) / sim.scale + sim.centerY
         };
       }
-      
+    
       let isPinching = false, initialPinchDistance = 0, initialScale = 0;
       let initialCenter = {x: 0, y: 0};
-      
       let draggingIndex = null, draggingCamera = false;
       let lastMouseX = 0, lastMouseY = 0;
       let lastTouchX = 0, lastTouchY = 0;
-      
+    
+      function actualizarTrackSelect() {
+        const trackSelect = document.getElementById('trackSelect');
+        const oldVal = trackSelect.value;
+        const currentLang = document.getElementById('langSelect').value;
+        const langData = translations[currentLang];
+    
+        trackSelect.innerHTML = '<option value="none"></option>';
+        trackSelect.options[0].text = langData["trackNinguno"];
+        trackSelect.options[0].value = "none";
+    
+        const opGlobal = document.createElement('option');
+        opGlobal.value = "global";
+        opGlobal.textContent = langData["trackGlobal"];
+        trackSelect.appendChild(opGlobal);
+    
+        if (typeof sim !== 'undefined' && sim.bodies) {
+          sim.bodies.forEach((b, idx) => {
+            const op = document.createElement('option');
+            op.value = `body${idx}`;
+            op.textContent = `${langData["trackCuerpo"]} ${idx+1}`;
+            trackSelect.appendChild(op);
+          });
+        }
+        if ([...trackSelect.options].some(o => o.value === oldVal)) {
+          trackSelect.value = oldVal;
+        } else { 
+          trackSelect.value = "none"; 
+        }
+        const globalZoomContainer = document.getElementById('globalZoomToggleContainer');
+        if (trackSelect.value === "global") { 
+          globalZoomContainer.style.display = "block"; 
+        } else { 
+          globalZoomContainer.style.display = "none"; 
+        }
+      }
+    
+      function actualizarListaCuerpos() {
+        const lista = document.getElementById('listaCuerpos');
+        lista.innerHTML = "";
+        const currentLang = document.getElementById('langSelect').value;
+        const langData = translations[currentLang];
+    
+        if (typeof sim !== 'undefined' && sim.bodies) {
+          sim.bodies.forEach((b, idx) => {
+            const div = document.createElement('div');
+            div.className = "cuerpoItem";
+            div.innerHTML = `<strong style="color: ${b.color};">${langData["cuerpoLabel"]} ${idx+1}</strong>`;
+            const masaDiv = document.createElement('div');
+            masaDiv.className = "campo";
+            masaDiv.innerHTML = `<label>${langData["masaCampoLabel"]}</label>
+              <input type="number" step="0.1" value="${b.m}">`;
+            masaDiv.querySelector('input').addEventListener('change', function() { b.m = parseFloat(this.value); });
+            div.appendChild(masaDiv);
+            const vxDiv = document.createElement('div');
+            vxDiv.className = "campo";
+            vxDiv.innerHTML = `<label>${langData["vxCampoLabel"]}</label>
+              <input type="number" step="0.1" value="${b.vx.toFixed(3)}">`;
+            vxDiv.querySelector('input').addEventListener('change', function() { b.vx = parseFloat(this.value); });
+            div.appendChild(vxDiv);
+            const vyDiv = document.createElement('div');
+            vyDiv.className = "campo";
+            vyDiv.innerHTML = `<label>${langData["vyCampoLabel"]}</label>
+              <input type="number" step="0.1" value="${b.vy.toFixed(3)}">`;
+            vyDiv.querySelector('input').addEventListener('change', function() { b.vy = parseFloat(this.value); });
+            div.appendChild(vyDiv);
+            const colorDiv = document.createElement('div');
+            colorDiv.className = "campo";
+            colorDiv.innerHTML = `<label>${langData["colorCampoLabel"]}</label>
+              <input type="color" value="${b.color}">`;
+            colorDiv.querySelector('input').addEventListener('change', function() {
+              b.color = this.value;
+              div.querySelector('strong').style.color = b.color;
+            });
+            div.appendChild(colorDiv);
+            const pxDiv = document.createElement('div');
+            pxDiv.className = "campo";
+            pxDiv.innerHTML = `<label>${langData["posXCampoLabel"]}</label>
+              <input type="number" step="0.1" value="${b.x.toFixed(3)}">`;
+            pxDiv.querySelector('input').addEventListener('change', function() { b.x = parseFloat(this.value); b.trail = []; });
+            div.appendChild(pxDiv);
+            const pyDiv = document.createElement('div');
+            pyDiv.className = "campo";
+            pyDiv.innerHTML = `<label>${langData["posYCampoLabel"]}</label>
+              <input type="number" step="0.1" value="${b.y.toFixed(3)}">`;
+            pyDiv.querySelector('input').addEventListener('change', function() { b.y = parseFloat(this.value); b.trail = []; });
+            div.appendChild(pyDiv);
+            const btnEliminar = document.createElement('button');
+            btnEliminar.className = "btnEliminar";
+            btnEliminar.textContent = langData["btnEliminar"];
+            btnEliminar.addEventListener('click', () => {
+              sim.bodies.splice(idx, 1);
+              actualizarListaCuerpos();
+              actualizarTrackSelect();
+            });
+            div.appendChild(btnEliminar);
+            lista.appendChild(div);
+          });
+        }
+      }
+    
       const btnTogglePanel = document.getElementById('btnTogglePanel');
       btnTogglePanel.addEventListener('click', () => {
         const panel = document.getElementById('controlPanel');
         if (panel.style.display === "none") {
           panel.style.display = "block";
-          btnTogglePanel.textContent = "Ocultar Panel";
+          updateText(document.getElementById('langSelect').value);
+          btnTogglePanel.textContent = translations[document.getElementById('langSelect').value]["btnTogglePanel"];
         } else {
           panel.style.display = "none";
-          btnTogglePanel.textContent = "Mostrar Panel";
+          btnTogglePanel.textContent = translations[document.getElementById('langSelect').value]["btnTogglePanel"];
         }
       });
-      
+    
       canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -480,46 +836,52 @@
         const worldPos = screenToWorld(mouseX, mouseY);
         draggingIndex = null;
         let sobreCuerpo = false;
-        sim.bodies.forEach((b, i) => {
-          const dx = worldPos.x - b.x;
-          const dy = worldPos.y - b.y;
-          if (Math.hypot(dx, dy) < b.radius * 2) {
-            draggingIndex = i;
-            sobreCuerpo = true;
-          }
-        });
+        if (typeof sim !== 'undefined' && sim.bodies) {
+          sim.bodies.forEach((b, i) => {
+            const dx = worldPos.x - b.x;
+            const dy = worldPos.y - b.y;
+            if (Math.hypot(dx, dy) < b.radius * 2) {
+              draggingIndex = i;
+              sobreCuerpo = true;
+            }
+          });
+        }
         if (!sobreCuerpo && document.getElementById('trackSelect').value === "none") {
           draggingCamera = true;
         }
         lastMouseX = mouseX;
         lastMouseY = mouseY;
       });
-      
+    
       canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
         if (draggingIndex !== null) {
-          const worldPos = screenToWorld(mouseX, mouseY);
-          const body = sim.bodies[draggingIndex];
-          body.x = worldPos.x;
-          body.y = worldPos.y;
-          body.vx = (mouseX - lastMouseX) / (sim.scale * sim.dt * 10);
-          body.vy = (mouseY - lastMouseY) / (sim.scale * sim.dt * 10);
-          body.trail = [];
+          if (typeof sim !== 'undefined' && sim.bodies && sim.bodies[draggingIndex]) {
+            const worldPos = screenToWorld(mouseX, mouseY);
+            const body = sim.bodies[draggingIndex];
+            body.x = worldPos.x;
+            body.y = worldPos.y;
+            body.vx = (mouseX - lastMouseX) / (sim.scale * sim.dt * 10);
+            body.vy = (mouseY - lastMouseY) / (sim.scale * sim.dt * 10);
+            body.trail = [];
+          }
         } else if (draggingCamera) {
           const dx = mouseX - lastMouseX;
-	  const dy = mouseY - lastMouseY;
-	  sim.centerX -= dx / sim.scale;
-	  sim.centerY += dy / sim.scale;
+          const dy = mouseY - lastMouseY;
+          if (typeof sim !== 'undefined') {
+            sim.centerX -= dx / sim.scale;
+            sim.centerY += dy / sim.scale;
+          }
         }
         lastMouseX = mouseX;
         lastMouseY = mouseY;
       });
-      
+    
       canvas.addEventListener('mouseup', () => { draggingIndex = null; draggingCamera = false; });
       canvas.addEventListener('mouseleave', () => { draggingIndex = null; draggingCamera = false; });
-      
+    
       canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if(e.touches.length === 1) {
@@ -530,14 +892,16 @@
           const worldPos = screenToWorld(touchX, touchY);
           draggingIndex = null;
           let sobreCuerpo = false;
-          sim.bodies.forEach((b, i) => {
-            const dx = worldPos.x - b.x;
-            const dy = worldPos.y - b.y;
-            if (Math.hypot(dx, dy) < b.radius * 2) {
-              draggingIndex = i;
-              sobreCuerpo = true;
-            }
-          });
+          if (typeof sim !== 'undefined' && sim.bodies) {
+            sim.bodies.forEach((b, i) => {
+              const dx = worldPos.x - b.x;
+              const dy = worldPos.y - b.y;
+              if (Math.hypot(dx, dy) < b.radius * 2) {
+                draggingIndex = i;
+                sobreCuerpo = true;
+              }
+            });
+          }
           if (!sobreCuerpo && document.getElementById('trackSelect').value === "none") {
             draggingCamera = true;
           }
@@ -549,11 +913,13 @@
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
           );
-          initialScale = sim.scale;
-          initialCenter = {x: sim.centerX, y: sim.centerY};
+          if (typeof sim !== 'undefined') {
+            initialScale = sim.scale;
+            initialCenter = {x: sim.centerX, y: sim.centerY};
+          }
         }
       });
-      
+    
       canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
         if(e.touches.length === 1 && !isPinching) {
@@ -562,18 +928,22 @@
           const touchX = touch.clientX - rect.left;
           const touchY = touch.clientY - rect.top;
           if (draggingIndex !== null) {
-            const worldPos = screenToWorld(touchX, touchY);
-            const body = sim.bodies[draggingIndex];
-            body.x = worldPos.x;
-            body.y = worldPos.y;
-            body.vx = 0;
-            body.vy = 0;
-            body.trail = [];
+            if (typeof sim !== 'undefined' && sim.bodies && sim.bodies[draggingIndex]) {
+              const worldPos = screenToWorld(touchX, touchY);
+              const body = sim.bodies[draggingIndex];
+              body.x = worldPos.x;
+              body.y = worldPos.y;
+              body.vx = 0;
+              body.vy = 0;
+              body.trail = [];
+            }
           } else if (draggingCamera) {
             const dx = touch.clientX - lastTouchX;
-	  const dy = touch.clientY - lastTouchY;
-	  sim.centerX -= dx / sim.scale;
-	  sim.centerY += dy / sim.scale;
+            const dy = touch.clientY - lastTouchY;
+            if (typeof sim !== 'undefined') {
+              sim.centerX -= dx / sim.scale;
+              sim.centerY += dy / sim.scale;
+            }
           }
           lastTouchX = touch.clientX;
           lastTouchY = touch.clientY;
@@ -583,39 +953,54 @@
             e.touches[0].clientY - e.touches[1].clientY
           );
           const scaleFactor = currentPinchDistance / initialPinchDistance;
-          sim.targetScale = (sim._requiredGlobalScale || sim.factorBase) * sim.userScaleFactor * scaleFactor;
-          const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-          const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-          const rect = canvas.getBoundingClientRect();
-          const canvasMid = { x: rect.width/2, y: rect.height/2 };
-          const dx = (midX - canvasMid.x) / sim.scale;
-          const dy = (midY - canvasMid.y) / sim.scale;
-          sim.centerX = initialCenter.x - dx;
-          sim.centerY = initialCenter.y - dy;
+          if (typeof sim !== 'undefined') {
+            sim.userScaleFactor *= scaleFactor;
+            sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
+            document.getElementById('scaleRange').value = sim.userScaleFactor;
+            document.getElementById('scaleValor').textContent = sim.userScaleFactor;
+            if(document.getElementById('trackSelect').value !== "global"){
+              sim.targetScale = sim.userScaleFactor * sim.factorBase;
+            } else {
+              if(!sim.autoZoomEnabled){
+                sim.targetScale = sim.userScaleFactor * sim.factorBase;
+              }
+            }
+    
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const rect = canvas.getBoundingClientRect();
+            const canvasMid = { x: rect.width/2, y: rect.height/2 };
+            const dx = (midX - canvasMid.x) / sim.scale;
+            const dy = (midY - canvasMid.y) / sim.scale;
+            sim.centerX = initialCenter.x - dx;
+            sim.centerY = initialCenter.y - dy;
+          }
         }
       });
-      
+    
       canvas.addEventListener('touchend', (e) => {
         if(e.touches.length < 2) { isPinching = false; }
         if(e.touches.length === 0) { draggingIndex = null; draggingCamera = false; }
       });
-      
+    
       canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomFactor = Math.exp(e.deltaY * -0.001);
-        sim.userScaleFactor *= zoomFactor;
-        sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
-        document.getElementById('scaleRange').value = sim.userScaleFactor;
-        document.getElementById('scaleValor').textContent = sim.userScaleFactor;
-        if(document.getElementById('trackSelect').value !== "global"){
-          sim.targetScale = sim.userScaleFactor * sim.factorBase;
-        } else {
-          if(!sim.autoZoomEnabled){
+        if (typeof sim !== 'undefined') {
+          sim.userScaleFactor *= zoomFactor;
+          sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
+          document.getElementById('scaleRange').value = sim.userScaleFactor;
+          document.getElementById('scaleValor').textContent = sim.userScaleFactor;
+          if(document.getElementById('trackSelect').value !== "global"){
             sim.targetScale = sim.userScaleFactor * sim.factorBase;
+          } else {
+            if(!sim.autoZoomEnabled){
+              sim.targetScale = sim.userScaleFactor * sim.factorBase;
+            }
           }
         }
       });
-      
+    
       const config3Body = {
         lagrange: [
           { m: 1, x: 1, y: 0, vx: 0, vy: -0.577350269, color: "#FF0000" },
@@ -623,7 +1008,7 @@
           { m: 1, x: -0.5, y: 0.866025404, vx: 0.5, vy: 0.288675134, color: "#0000FF" }
         ],
         figura8: [
-          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy: -0.86473146/2, color: "#FF0000" },
+          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy:  -0.86473146/2, color: "#FF0000" },
           { m: 1, x: -0.97000436, y: -0.24308753, vx: 0.93240737/2, vy: 0.86473146/2, color: "#00FF00" },
           { m: 1, x: 0, y: 0, vx: 0, vy: 0, color: "#0000FF" }
         ],
@@ -644,7 +1029,7 @@
         ]
       };
       const originalPersonalizada = JSON.parse(JSON.stringify(config3Body.personalizada));
-
+    
       class Body {
         constructor(cfg) {
           this.m = cfg.m;
@@ -702,7 +1087,7 @@
           ctx.fill();
         }
       }
-
+    
       class Simulation {
         constructor() {
           this.bodies = [];
@@ -750,17 +1135,6 @@
           this.bodies.forEach(b => b.trail = []);
           actualizarListaCuerpos();
           actualizarTrackSelect();
-          if (this.bodies.length > 0) {
-            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            for (let b of this.bodies) {
-              if (b.x < minX) minX = b.x;
-              if (b.x > maxX) maxX = b.x;
-              if (b.y < minY) minY = b.y;
-              if (b.y > maxY) maxY = b.y;
-            }
-            this.centerX = (minX + maxX) / 2;
-            this.centerY = (minY + maxY) / 2;
-          }
         }
         computeForces() {
           for (let b of this.bodies) { b.ax = 0; b.ay = 0; }
@@ -779,14 +1153,11 @@
           }
         }
         update() {
-          // Actualizar la física solo si no está pausada.
-          if (!this.paused) {
-            for (let i = 0; i < this.speed; i++) {
-              this.computeForces();
-              for (let b of this.bodies) { b.update(this.dt); }
-            }
+          if (this.paused) return;
+          for (let i = 0; i < this.speed; i++) {
+            this.computeForces();
+            for (let b of this.bodies) { b.update(this.dt); }
           }
-          // Actualizar el tracking de la cámara (siempre, incluso en pausa)
           const trackVal = document.getElementById('trackSelect').value;
           if (trackVal.startsWith("body")) {
             const idx = parseInt(trackVal.slice(4));
@@ -821,7 +1192,6 @@
               }
             }
           }
-          // Actualizar la escala (zoom) siempre, incluso en pausa.
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         draw() {
@@ -833,90 +1203,10 @@
           ctx.restore();
         }
       }
-
       const sim = new Simulation();
       sim.loadConfiguration(document.getElementById('configSelect').value);
-
-      function actualizarTrackSelect() {
-        const trackSelect = document.getElementById('trackSelect');
-        const oldVal = trackSelect.value;
-        trackSelect.innerHTML = '<option value="none">Ninguno</option>';
-        const opGlobal = document.createElement('option');
-        opGlobal.value = "global";
-        opGlobal.textContent = "Tracking Global";
-        trackSelect.appendChild(opGlobal);
-        sim.bodies.forEach((b, idx) => {
-          const op = document.createElement('option');
-          op.value = `body${idx}`;
-          op.textContent = `Track cuerpo ${idx+1}`;
-          trackSelect.appendChild(op);
-        });
-        if ([...trackSelect.options].some(o => o.value === oldVal)) {
-          trackSelect.value = oldVal;
-        } else { trackSelect.value = "none"; }
-        const globalZoomContainer = document.getElementById('globalZoomToggleContainer');
-        if (trackSelect.value === "global") { globalZoomContainer.style.display = "block"; }
-        else { globalZoomContainer.style.display = "none"; }
-      }
-
-      function actualizarListaCuerpos() {
-        const lista = document.getElementById('listaCuerpos');
-        lista.innerHTML = "";
-        sim.bodies.forEach((b, idx) => {
-          const div = document.createElement('div');
-          div.innerHTML = `<strong style="color: ${b.color};">Cuerpo ${idx+1}</strong>`;
-          const masaDiv = document.createElement('div');
-          masaDiv.className = "campo";
-          masaDiv.innerHTML = `<label>Masa:</label>
-            <input type="number" step="0.1" value="${b.m}">`;
-          masaDiv.querySelector('input').addEventListener('change', function() { b.m = parseFloat(this.value); });
-          div.appendChild(masaDiv);
-          const vxDiv = document.createElement('div');
-          vxDiv.className = "campo";
-          vxDiv.innerHTML = `<label>Vel X:</label>
-            <input type="number" step="0.1" value="${b.vx.toFixed(3)}">`;
-          vxDiv.querySelector('input').addEventListener('change', function() { b.vx = parseFloat(this.value); });
-          div.appendChild(vxDiv);
-          const vyDiv = document.createElement('div');
-          vyDiv.className = "campo";
-          vyDiv.innerHTML = `<label>Vel Y:</label>
-            <input type="number" step="0.1" value="${b.vy.toFixed(3)}">`;
-          vyDiv.querySelector('input').addEventListener('change', function() { b.vy = parseFloat(this.value); });
-          div.appendChild(vyDiv);
-          const colorDiv = document.createElement('div');
-          colorDiv.className = "campo";
-          colorDiv.innerHTML = `<label>Color:</label>
-            <input type="color" value="${b.color}">`;
-          colorDiv.querySelector('input').addEventListener('change', function() {
-            b.color = this.value;
-            div.querySelector('strong').style.color = b.color;
-          });
-          div.appendChild(colorDiv);
-          const pxDiv = document.createElement('div');
-          pxDiv.className = "campo";
-          pxDiv.innerHTML = `<label>Pos X:</label>
-            <input type="number" step="0.1" value="${b.x.toFixed(3)}">`;
-          pxDiv.querySelector('input').addEventListener('change', function() { b.x = parseFloat(this.value); b.trail = []; });
-          div.appendChild(pxDiv);
-          const pyDiv = document.createElement('div');
-          pyDiv.className = "campo";
-          pyDiv.innerHTML = `<label>Pos Y:</label>
-            <input type="number" step="0.1" value="${b.y.toFixed(3)}">`;
-          pyDiv.querySelector('input').addEventListener('change', function() { b.y = parseFloat(this.value); b.trail = []; });
-          div.appendChild(pyDiv);
-          const btnEliminar = document.createElement('button');
-          btnEliminar.className = "btnEliminar";
-          btnEliminar.textContent = "Eliminar";
-          btnEliminar.addEventListener('click', () => {
-            sim.bodies.splice(idx, 1);
-            actualizarListaCuerpos();
-            actualizarTrackSelect();
-          });
-          div.appendChild(btnEliminar);
-          lista.appendChild(div);
-        });
-      }
-
+      updateText(initialLang);
+    
       document.getElementById('btnRestablecer').addEventListener('click', () => {
         document.getElementById('configSelect').value = "personalizada";
         document.getElementById('dtRange').value = "0.001";
@@ -934,27 +1224,27 @@
         sim.scale = sim.userScaleFactor * sim.factorBase;
         sim.targetScale = sim.scale;
         sim.autoZoomEnabled = true;
-        document.getElementById('btnToggleAutoZoom').textContent = "Desactivar Zoom Automático";
+        document.getElementById('btnToggleAutoZoom').textContent = translations[document.getElementById('langSelect').value]["btnToggleAutoZoom"];
       });
-
+    
       document.getElementById('btnPausar').addEventListener('click', () => {
         sim.paused = !sim.paused;
-        document.getElementById('btnPausar').textContent = sim.paused ? "Reanudar" : "Pausar";
+        document.getElementById('btnPausar').textContent = sim.paused ? translations[document.getElementById('langSelect').value]["btnReiniciar"] : translations[document.getElementById('langSelect').value]["btnPausar"];
       });
-
+    
       document.getElementById('btnReiniciar').addEventListener('click', () => {
         sim.loadConfiguration(document.getElementById('configSelect').value);
       });
-
+    
       document.getElementById('configSelect').addEventListener('change', (e) => {
         sim.loadConfiguration(e.target.value);
       });
-
+    
       document.getElementById('dtRange').addEventListener('input', (e) => {
         sim.dt = parseFloat(e.target.value);
         document.getElementById('dtValor').textContent = sim.dt;
       });
-
+    
       document.getElementById('scaleRange').addEventListener('input', (e) => {
         sim.userScaleFactor = parseFloat(e.target.value);
         document.getElementById('scaleValor').textContent = e.target.value;
@@ -962,42 +1252,42 @@
           sim.targetScale = sim.userScaleFactor * sim.factorBase;
         }
       });
-
+    
       document.getElementById('speedRange').addEventListener('input', (e) => {
         sim.speed = parseFloat(e.target.value);
         document.getElementById('speedValor').textContent = e.target.value;
       });
-
+    
       document.getElementById('trackSelect').addEventListener('change', () => {
         sim.bodies.forEach(b => b.trail = []);
         sim.centerX = 0;
         sim.centerY = 0;
         actualizarTrackSelect();
       });
-
+    
       const btnToggleAutoZoom = document.getElementById('btnToggleAutoZoom');
       btnToggleAutoZoom.addEventListener('click', () => {
         sim.autoZoomEnabled = !sim.autoZoomEnabled;
-        btnToggleAutoZoom.textContent = sim.autoZoomEnabled ? "Desactivar Zoom Automático" : "Activar Zoom Automático";
+        btnToggleAutoZoom.textContent = sim.autoZoomEnabled ? translations[document.getElementById('langSelect').value]["btnToggleAutoZoom"] : translations[document.getElementById('langSelect').value]["btnToggleAutoZoom"].replace("Desactivar", "Activar").replace("Disable", "Enable");
       });
-
+    
       document.getElementById('btnInfo').addEventListener('click', () => {
         document.getElementById('infoModal').style.display = "block";
       });
-
+    
       document.getElementById('btnCerrarInfo').addEventListener('click', () => {
         document.getElementById('infoModal').style.display = "none";
       });
-
+    
       const formAgregar = document.getElementById('formAgregar');
       document.getElementById('btnAgregar').addEventListener('click', () => {
         formAgregar.style.display = "block";
       });
-
+    
       document.getElementById('btnCancelarAgregar').addEventListener('click', () => {
         formAgregar.style.display = "none";
       });
-
+    
       document.getElementById('btnConfirmarAgregar').addEventListener('click', () => {
         const m = parseFloat(document.getElementById('nuevaMasa').value);
         const vx = parseFloat(document.getElementById('nuevaVx').value);
@@ -1015,13 +1305,13 @@
         actualizarTrackSelect();
         formAgregar.style.display = "none";
       });
-
+    
       function animate() {
         sim.update();
         sim.draw();
         requestAnimationFrame(animate);
       }
-
+    
       animate();
     })();
   </script>
