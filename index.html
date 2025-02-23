@@ -315,7 +315,7 @@
           this.ay = 0;
           this.color = cfg.color || "#FFFFFF";
           this.trail = [];
-          this.trailLength = 600;
+          this.trailLength = 1200;
           this.radius = 0.02;
         }
         update(dt) {
@@ -407,6 +407,18 @@
               "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović." : "";
           }
           this.bodies.forEach(b => b.trail = []);
+	  // Nuevo bloque para centrar la cámara en el nuevo sistema
+	  if (this.bodies.length > 0) {
+ 	      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+ 	      for (let b of this.bodies) {
+        	  if (b.x < minX) minX = b.x;
+	          if (b.x > maxX) maxX = b.x;
+        	  if (b.y < minY) minY = b.y;
+        	  if (b.y > maxY) maxY = b.y;
+  	  }
+   	  this.centerX = (minX + maxX) / 2;
+   	  this.centerY = (minY + maxY) / 2;
+	  }
           actualizarListaCuerpos();
           actualizarTrackSelect();
         }
