@@ -8,13 +8,13 @@
       margin: 0; padding: 0; overflow: hidden;
       background-color: #000; font-family: Arial, sans-serif;
       color: #fff; height: 100%;
-      touch-action: none; /* Evita gestos por defecto */
+      touch-action: none;
     }
     canvas {
       display: block; background-color: #111;
       width: 100%; height: 100%;
     }
-    /* Botón de toggle fuera del panel, siempre visible */
+    /* Botón de toggle fuera del panel */
     #btnTogglePanel {
       position: fixed; top: 10px; left: 10px;
       z-index: 20; padding: 10px 15px;
@@ -27,30 +27,20 @@
       border-radius: 8px; width: 380px; z-index: 10;
       max-height: 90vh; overflow-y: auto;
     }
-    /* Encabezado del panel */
     #panelHeader {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: flex; justify-content: center; align-items: center;
       margin-bottom: 10px;
     }
-    #panelHeader h2 {
-      margin: 0;
-    }
-    /* Contenedor para el toggle de zoom automático */
+    #panelHeader h2 { margin: 0; }
+    /* Contenedor para toggle de zoom automático */
     #globalZoomToggleContainer {
       margin-top: 8px;
       display: none;
     }
     #globalZoomToggleContainer button {
-      width: 100%;
-      padding: 8px;
-      border: none;
-      border-radius: 4px;
-      background-color: #444;
-      color: #fff;
-      font-size: 14px;
-      cursor: pointer;
+      width: 100%; padding: 8px;
+      border: none; border-radius: 4px; background-color: #444;
+      color: #fff; font-size: 14px; cursor: pointer;
     }
     #controlPanel label {
       display: block; margin-top: 8px; font-size: 14px;
@@ -67,12 +57,8 @@
       width: 48%; padding: 8px; margin-top: 10px;
       border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
     }
-    #controlPanel button:hover {
-      opacity: 0.9;
-    }
-    .btn-container {
-      display: flex; justify-content: space-between;
-    }
+    #controlPanel button:hover { opacity: 0.9; }
+    .btn-container { display: flex; justify-content: space-between; }
     #extraInfo {
       margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.7);
       border-radius: 4px; font-size: 12px;
@@ -84,32 +70,23 @@
       border-radius: 8px; z-index: 30; width: 80%;
       max-height: 80vh; overflow-y: auto;
     }
-    #infoModal h2 {
-      text-align: center;
-    }
-    #infoModal p {
-      font-size: 13px; line-height: 1.4;
-    }
+    #infoModal h2 { text-align: center; }
+    #infoModal p { font-size: 13px; line-height: 1.4; }
     #btnCerrarInfo {
       display: block; margin: 10px auto 0 auto; padding: 8px 16px;
       border: none; border-radius: 4px; background-color: #555;
       color: #fff; cursor: pointer;
     }
     #listaCuerpos {
-      margin-top: 10px; border: 1px solid #444;
-      padding: 5px;
+      margin-top: 10px; border: 1px solid #444; padding: 5px;
     }
     .cuerpoItem {
       border-bottom: 1px solid #555; padding: 5px 0; margin-bottom: 5px;
     }
-    .cuerpoItem:last-child {
-      border-bottom: none;
-    }
+    .cuerpoItem:last-child { border-bottom: none; }
     .campo { margin-top: 4px; }
     .campo label { font-size: 12px; }
-    .campo input {
-      width: 100%; padding: 2px; font-size: 12px;
-    }
+    .campo input { width: 100%; padding: 2px; font-size: 12px; }
     .btnEliminar {
       background-color: #c0392b; color: #fff; border: none; border-radius: 4px;
       padding: 4px; cursor: pointer; font-size: 12px; margin-top: 4px;
@@ -121,9 +98,7 @@
       border-radius: 8px; z-index: 20; width: 300px;
     }
     #formAgregar h3 { text-align: center; margin-top: 0; }
-    #formAgregar label {
-      display: block; margin-top: 8px; font-size: 14px;
-    }
+    #formAgregar label { display: block; margin-top: 8px; font-size: 14px; }
     #formAgregar input[type="number"],
     #formAgregar input[type="color"] {
       width: 100%; padding: 4px; margin-top: 4px;
@@ -135,11 +110,7 @@
     }
     #formAgregar button:hover { opacity: 0.9; }
     @media (max-width: 600px) {
-      #controlPanel {
-        width: 90%;
-        right: 5%;
-        top: 10px;
-      }
+      #controlPanel { width: 90%; right: 5%; top: 10px; }
     }
   </style>
 </head>
@@ -219,8 +190,9 @@
     <input type="number" id="nuevoPosX" value="0" step="1">
     <label for="nuevoPosY">Posición Y:</label>
     <input type="number" id="nuevoPosY" value="0" step="1">
+    <!-- Se mantiene el input de color para que el usuario pueda cambiarlo si lo desea -->
     <label for="nuevoColor">Color:</label>
-    <input type="color" id="nuevoColor" value="#FFFFFF">
+    <input type="color" id="nuevoColor" value="#ffffff">
     <button id="btnConfirmarAgregar">Agregar</button>
     <button id="btnCancelarAgregar" style="background-color:#777;">Cancelar</button>
   </div>
@@ -237,21 +209,21 @@
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
       
-      // Variables para manejo táctil (pinch y pan) y para cámara
-      let isPinching = false;
-      let initialPinchDistance = 0;
-      let initialScale = 0;
+      // Convertir coordenadas de pantalla a mundo con eje Y invertido (valores positivos hacia arriba)
+      function screenToWorld(screenX, screenY) {
+        return {
+          x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
+          y: (canvas.height/2 - screenY) / sim.scale + sim.centerY
+        };
+      }
+      
+      let isPinching = false, initialPinchDistance = 0, initialScale = 0;
       let initialCenter = {x: 0, y: 0};
       
-      // Variables para arrastrar: cuerpo o cámara
-      let draggingIndex = null;
-      let draggingCamera = false;
-      let lastMouseX = 0;
-      let lastMouseY = 0;
-      let lastTouchX = 0;
-      let lastTouchY = 0;
+      let draggingIndex = null, draggingCamera = false;
+      let lastMouseX = 0, lastMouseY = 0;
+      let lastTouchX = 0, lastTouchY = 0;
       
-      // Botón de toggle fuera del panel
       const btnTogglePanel = document.getElementById('btnTogglePanel');
       btnTogglePanel.addEventListener('click', () => {
         const panel = document.getElementById('controlPanel');
@@ -264,15 +236,6 @@
         }
       });
       
-      // Función para convertir coordenadas de pantalla a mundo
-      function screenToWorld(screenX, screenY) {
-        return {
-          x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
-          y: (screenY - canvas.height/2) / sim.scale + sim.centerY
-        };
-      }
-      
-      // Eventos de ratón
       canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -317,16 +280,9 @@
         lastMouseY = mouseY;
       });
       
-      canvas.addEventListener('mouseup', () => {
-        draggingIndex = null;
-        draggingCamera = false;
-      });
-      canvas.addEventListener('mouseleave', () => {
-        draggingIndex = null;
-        draggingCamera = false;
-      });
+      canvas.addEventListener('mouseup', () => { draggingIndex = null; draggingCamera = false; });
+      canvas.addEventListener('mouseleave', () => { draggingIndex = null; draggingCamera = false; });
       
-      // Eventos táctiles
       canvas.addEventListener('touchstart', (e) => {
         e.preventDefault();
         if(e.touches.length === 1) {
@@ -403,16 +359,10 @@
       });
       
       canvas.addEventListener('touchend', (e) => {
-        if(e.touches.length < 2) {
-          isPinching = false;
-        }
-        if(e.touches.length === 0) {
-          draggingIndex = null;
-          draggingCamera = false;
-        }
+        if(e.touches.length < 2) { isPinching = false; }
+        if(e.touches.length === 0) { draggingIndex = null; draggingCamera = false; }
       });
       
-      // Evento para actualizar el zoom con la rueda del ratón
       canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomFactor = Math.exp(e.deltaY * -0.001);
@@ -423,41 +373,41 @@
         if(document.getElementById('trackSelect').value !== "global"){
           sim.targetScale = sim.userScaleFactor * sim.factorBase;
         } else {
-          if(!sim.autoZoomEnabled) {
+          if(!sim.autoZoomEnabled){
             sim.targetScale = sim.userScaleFactor * sim.factorBase;
           }
         }
       });
       
-      // Configuración inicial de cuerpos (3 predefinidos para "personalizada")
+      // Configuraciones predeterminadas con colores y con valores Y invertidos
       const config3Body = {
         lagrange: [
           { m: 1, x: 1, y: 0, vx: 0, vy: 0.577350269, color: "#FF0000" },
-          { m: 1, x: -0.5, y: 0.866025404, vx: -0.5, vy: -0.288675134, color: "#00FF00" },
-          { m: 1, x: -0.5, y: -0.866025404, vx: 0.5, vy: -0.288675134, color: "#0000FF" }
+          { m: 1, x: -0.5, y: -0.866025404, vx: -0.5, vy: 0.288675134, color: "#00FF00" },
+          { m: 1, x: -0.5, y: 0.866025404, vx: 0.5, vy: 0.288675134, color: "#0000FF" }
         ],
         figura8: [
-          { m: 1, x: 0.97000436, y: -0.24308753, vx: -0.93240737/2, vy: 0.86473146/2, color: "#FF0000" },
-          { m: 1, x: -0.97000436, y: 0.24308753, vx: 0.93240737/2, vy: -0.86473146/2, color: "#00FF00" },
+          { m: 1, x: 0.97000436, y: 0.24308753, vx: -0.93240737/2, vy: -0.86473146/2, color: "#FF0000" },
+          { m: 1, x: -0.97000436, y: -0.24308753, vx: 0.93240737/2, vy: 0.86473146/2, color: "#00FF00" },
           { m: 1, x: 0, y: 0, vx: 0, vy: 0, color: "#0000FF" }
         ],
         euler: [
-          { m: 1, x: -1, y: 0, vx: 0, vy: 0.3, color: "#FF8800" },
-          { m: 1, x: 0, y: 0, vx: 0, vy: -0.6, color: "#88FF00" },
-          { m: 1, x: 1, y: 0, vx: 0, vy: 0.3, color: "#0088FF" }
+          { m: 1, x: -1, y: 0, vx: 0, vy: -0.3, color: "#FF8800" },
+          { m: 1, x: 0, y: 0, vx: 0, vy: 0.6, color: "#88FF00" },
+          { m: 1, x: 1, y: 0, vx: 0, vy: -0.3, color: "#0088FF" }
         ],
         butterfly: [
-          { m: 1, x: -1, y: 0, vx: 0.306893, vy: 0.125507, color: "#FF0000" },
-          { m: 1, x: 1, y: 0, vx: 0.306893, vy: 0.125507, color: "#00FF00" },
-          { m: 1, x: 0, y: 0, vx: -0.613786, vy: -0.251014, color: "#0000FF" }
+          { m: 1, x: -1, y: 0, vx: 0.306893, vy: -0.125507, color: "#FF0000" },
+          { m: 1, x: 1, y: 0, vx: 0.306893, vy: -0.125507, color: "#00FF00" },
+          { m: 1, x: 0, y: 0, vx: -0.613786, vy: 0.251014, color: "#0000FF" }
         ],
         personalizada: [
-          { m: 1, x: 0.5, y: 0, vx: 0, vy: 0.5, color: "#FFAA00" },
-          { m: 1, x: -0.5, y: 0, vx: 0, vy: -0.5, color: "#00AABB" },
-          { m: 1, x: 0, y: 0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
+          { m: 1, x: 0.5, y: 0, vx: 0, vy: -0.5, color: "#FFAA00" },
+          { m: 1, x: -0.5, y: 0, vx: 0, vy: 0.5, color: "#00AABB" },
+          { m: 1, x: 0, y: -0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
         ]
       };
-      // Guardar copia original de la configuración personalizada
+      // Guardar copia original de la configuración "personalizada"
       const originalPersonalizada = JSON.parse(JSON.stringify(config3Body.personalizada));
       
       class Body {
@@ -474,7 +424,6 @@
           this.trailLength = 600;
           this.radius = 0.02;
         }
-        
         update(dt) {
           this.vx += this.ax * dt;
           this.vy += this.ay * dt;
@@ -483,12 +432,9 @@
           const lastPoint = this.trail[this.trail.length - 1];
           if (!lastPoint || Math.hypot(this.x - lastPoint.x, this.y - lastPoint.y) > 0.01) {
             this.trail.push({ x: this.x, y: this.y });
-            if (this.trail.length > this.trailLength) {
-              this.trail.shift();
-            }
+            if (this.trail.length > this.trailLength) { this.trail.shift(); }
           }
         }
-        
         draw(ctx, scale, offsetX = 0, offsetY = 0) {
           if (this.trail.length > 1) {
             ctx.beginPath();
@@ -538,10 +484,8 @@
           this._requiredGlobalScale = this.factorBase;
           this.autoZoomEnabled = true;
         }
-        
         loadConfiguration(name) {
           if (name === "personalizada") {
-            // Para "personalizada" se restablecen también dt, speed y escala a valores por defecto
             this.dt = 0.001;
             this.speed = 1;
             this.scale = this.factorBase;
@@ -571,12 +515,8 @@
           actualizarListaCuerpos();
           actualizarTrackSelect();
         }
-        
         computeForces() {
-          for (let b of this.bodies) {
-            b.ax = 0;
-            b.ay = 0;
-          }
+          for (let b of this.bodies) { b.ax = 0; b.ay = 0; }
           for (let i = 0; i < this.bodies.length; i++) {
             for (let j = i + 1; j < this.bodies.length; j++) {
               const dx = this.bodies[j].x - this.bodies[i].x;
@@ -591,14 +531,11 @@
             }
           }
         }
-        
         update() {
           if (this.paused) return;
           for (let i = 0; i < this.speed; i++) {
             this.computeForces();
-            for (let b of this.bodies) {
-              b.update(this.dt);
-            }
+            for (let b of this.bodies) { b.update(this.dt); }
           }
           const trackVal = document.getElementById('trackSelect').value;
           if (trackVal.startsWith("body")) {
@@ -634,17 +571,14 @@
               }
             }
           }
-          // En modo "none", se permite el panning manual sin forzar centrado.
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
-        
         draw() {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
-          ctx.translate(canvas.width / 2, canvas.height / 2);
-          for (let b of this.bodies) {
-            b.draw(ctx, this.scale, this.centerX, this.centerY);
-          }
+          ctx.translate(canvas.width/2, canvas.height/2);
+          ctx.scale(1, -1); // Invertir eje Y para que los valores positivos vayan hacia arriba
+          for (let b of this.bodies) { b.draw(ctx, this.scale, this.centerX, this.centerY); }
           ctx.restore();
         }
       }
@@ -652,7 +586,6 @@
       const sim = new Simulation();
       sim.loadConfiguration(document.getElementById('configSelect').value);
       
-      // Actualizar la visibilidad del contenedor de zoom global según el modo de tracking
       function actualizarTrackSelect() {
         const trackSelect = document.getElementById('trackSelect');
         const oldVal = trackSelect.value;
@@ -669,15 +602,10 @@
         });
         if ([...trackSelect.options].some(o => o.value === oldVal)) {
           trackSelect.value = oldVal;
-        } else {
-          trackSelect.value = "none";
-        }
+        } else { trackSelect.value = "none"; }
         const globalZoomContainer = document.getElementById('globalZoomToggleContainer');
-        if (trackSelect.value === "global") {
-          globalZoomContainer.style.display = "block";
-        } else {
-          globalZoomContainer.style.display = "none";
-        }
+        if (trackSelect.value === "global") { globalZoomContainer.style.display = "block"; }
+        else { globalZoomContainer.style.display = "none"; }
       }
       
       function actualizarListaCuerpos() {
@@ -685,31 +613,25 @@
         lista.innerHTML = "";
         sim.bodies.forEach((b, idx) => {
           const div = document.createElement('div');
-          div.className = "cuerpoItem";
-          div.innerHTML = `<strong>Cuerpo ${idx+1}</strong>`;
+          // El título ahora refleja el color del cuerpo
+          div.innerHTML = `<strong style="color: ${b.color};">Cuerpo ${idx+1}</strong>`;
           const masaDiv = document.createElement('div');
           masaDiv.className = "campo";
           masaDiv.innerHTML = `<label>Masa:</label>
             <input type="number" step="0.1" value="${b.m}">`;
-          masaDiv.querySelector('input').addEventListener('change', function() {
-            b.m = parseFloat(this.value);
-          });
+          masaDiv.querySelector('input').addEventListener('change', function() { b.m = parseFloat(this.value); });
           div.appendChild(masaDiv);
           const vxDiv = document.createElement('div');
           vxDiv.className = "campo";
           vxDiv.innerHTML = `<label>Vel X:</label>
             <input type="number" step="0.1" value="${b.vx.toFixed(3)}">`;
-          vxDiv.querySelector('input').addEventListener('change', function() {
-            b.vx = parseFloat(this.value);
-          });
+          vxDiv.querySelector('input').addEventListener('change', function() { b.vx = parseFloat(this.value); });
           div.appendChild(vxDiv);
           const vyDiv = document.createElement('div');
           vyDiv.className = "campo";
           vyDiv.innerHTML = `<label>Vel Y:</label>
             <input type="number" step="0.1" value="${b.vy.toFixed(3)}">`;
-          vyDiv.querySelector('input').addEventListener('change', function() {
-            b.vy = parseFloat(this.value);
-          });
+          vyDiv.querySelector('input').addEventListener('change', function() { b.vy = parseFloat(this.value); });
           div.appendChild(vyDiv);
           const colorDiv = document.createElement('div');
           colorDiv.className = "campo";
@@ -717,25 +639,21 @@
             <input type="color" value="${b.color}">`;
           colorDiv.querySelector('input').addEventListener('change', function() {
             b.color = this.value;
+            // Actualizar el título del cuerpo para reflejar el nuevo color
+            div.querySelector('strong').style.color = b.color;
           });
           div.appendChild(colorDiv);
           const pxDiv = document.createElement('div');
           pxDiv.className = "campo";
           pxDiv.innerHTML = `<label>Pos X:</label>
             <input type="number" step="0.1" value="${b.x.toFixed(3)}">`;
-          pxDiv.querySelector('input').addEventListener('change', function() {
-            b.x = parseFloat(this.value);
-            b.trail = [];
-          });
+          pxDiv.querySelector('input').addEventListener('change', function() { b.x = parseFloat(this.value); b.trail = []; });
           div.appendChild(pxDiv);
           const pyDiv = document.createElement('div');
           pyDiv.className = "campo";
           pyDiv.innerHTML = `<label>Pos Y:</label>
             <input type="number" step="0.1" value="${b.y.toFixed(3)}">`;
-          pyDiv.querySelector('input').addEventListener('change', function() {
-            b.y = parseFloat(this.value);
-            b.trail = [];
-          });
+          pyDiv.querySelector('input').addEventListener('change', function() { b.y = parseFloat(this.value); b.trail = []; });
           div.appendChild(pyDiv);
           const btnEliminar = document.createElement('button');
           btnEliminar.className = "btnEliminar";
@@ -750,9 +668,8 @@
         });
       }
       
-      // Botón "Restablecer por defecto": reinicia todo el estado como si se iniciara la aplicación por primera vez.
+      // Botón "Restablecer por defecto": reinicia la aplicación como si se iniciara por primera vez.
       document.getElementById('btnRestablecer').addEventListener('click', () => {
-        // Restablecer controles a valores iniciales
         document.getElementById('configSelect').value = "personalizada";
         document.getElementById('dtRange').value = "0.001";
         document.getElementById('dtValor').textContent = "0.001";
@@ -763,9 +680,7 @@
         document.getElementById('trackSelect').value = "none";
         // Reiniciar la configuración personalizada a su estado original
         config3Body.personalizada = JSON.parse(JSON.stringify(originalPersonalizada));
-        // Cargar la configuración "personalizada" (ahora actualiza dt y speed)
         sim.loadConfiguration("personalizada");
-        // Reiniciar variables internas de la simulación
         sim.centerX = 0;
         sim.centerY = 0;
         sim.userScaleFactor = 1;
@@ -836,13 +751,18 @@
         formAgregar.style.display = "none";
       });
       
+      // Al agregar un cuerpo nuevo, si el color es blanco, se asigna uno aleatorio.
       document.getElementById('btnConfirmarAgregar').addEventListener('click', () => {
         const m = parseFloat(document.getElementById('nuevaMasa').value);
         const vx = parseFloat(document.getElementById('nuevaVx').value);
         const vy = parseFloat(document.getElementById('nuevaVy').value);
         const x = parseFloat(document.getElementById('nuevoPosX').value);
         const y = parseFloat(document.getElementById('nuevoPosY').value);
-        const color = document.getElementById('nuevoColor').value;
+        let color = document.getElementById('nuevoColor').value;
+        // Si es blanco, asignar un color aleatorio
+        if(color.toLowerCase() === "#ffffff") {
+          color = "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+        }
         const newBody = new Body({ m, x, y, vx, vy, color });
         config3Body.personalizada.push({ m, x, y, vx, vy, color });
         sim.bodies.push(newBody);
