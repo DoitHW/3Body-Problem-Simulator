@@ -279,7 +279,6 @@
         const mouseY = e.clientY - rect.top;
         const worldPos = screenToWorld(mouseX, mouseY);
         draggingIndex = null;
-        // Verificar si se ha pulsado sobre algún cuerpo
         let sobreCuerpo = false;
         sim.bodies.forEach((b, i) => {
           const dx = worldPos.x - b.x;
@@ -289,7 +288,6 @@
             sobreCuerpo = true;
           }
         });
-        // Si no se ha pulsado sobre un cuerpo y el tracking es "Ninguno", habilitar arrastre de cámara
         if (!sobreCuerpo && document.getElementById('trackSelect').value === "none") {
           draggingCamera = true;
         }
@@ -414,12 +412,11 @@
         }
       });
       
-      // Añadir funcionalidad para zoom con la rueda del ratón
+      // Evento para actualizar el zoom con la rueda del ratón
       canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomFactor = Math.exp(e.deltaY * -0.001);
         sim.userScaleFactor *= zoomFactor;
-        // Limitar el factor entre 0.1 y 5 (según el control scaleRange)
         sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
         document.getElementById('scaleRange').value = sim.userScaleFactor;
         document.getElementById('scaleValor').textContent = sim.userScaleFactor;
@@ -460,6 +457,8 @@
           { m: 1, x: 0, y: 0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
         ]
       };
+      // Guardar copia original de la configuración personalizada
+      const originalPersonalizada = JSON.parse(JSON.stringify(config3Body.personalizada));
       
       class Body {
         constructor(cfg) {
@@ -542,6 +541,17 @@
         
         loadConfiguration(name) {
           if (name === "personalizada") {
+            // Para "personalizada" se restablecen también dt, speed y escala a valores por defecto
+            this.dt = 0.001;
+            this.speed = 1;
+            this.scale = this.factorBase;
+            this.targetScale = this.scale;
+            document.getElementById('dtRange').value = this.dt;
+            document.getElementById('dtValor').textContent = this.dt;
+            document.getElementById('scaleRange').value = (this.scale / this.factorBase);
+            document.getElementById('scaleValor').textContent = (this.scale / this.factorBase);
+            document.getElementById('speedRange').value = this.speed;
+            document.getElementById('speedValor').textContent = this.speed;
             this.bodies = [...config3Body.personalizada].map(c => new Body(c));
           } else {
             this.dt = (name === "butterfly") ? 0.0005 : 0.001;
@@ -550,8 +560,8 @@
             this.targetScale = this.scale;
             document.getElementById('dtRange').value = this.dt;
             document.getElementById('dtValor').textContent = this.dt;
-            document.getElementById('scaleRange').value = (this.scale / this.factorBase);
-            document.getElementById('scaleValor').textContent = (this.scale / this.factorBase);
+            document.getElementById('scaleRange').value = (this.scale/this.factorBase);
+            document.getElementById('scaleValor').textContent = (this.scale/this.factorBase);
             document.getElementById('speedRange').value = this.speed;
             document.getElementById('speedValor').textContent = this.speed;
             this.bodies = config3Body[name].map(c => new Body(c));
@@ -624,6 +634,7 @@
               }
             }
           }
+          // En modo "none", se permite el panning manual sin forzar centrado.
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         
@@ -739,16 +750,37 @@
         });
       }
       
+      // Botón "Restablecer por defecto": reinicia todo el estado como si se iniciara la aplicación por primera vez.
+      document.getElementById('btnRestablecer').addEventListener('click', () => {
+        // Restablecer controles a valores iniciales
+        document.getElementById('configSelect').value = "personalizada";
+        document.getElementById('dtRange').value = "0.001";
+        document.getElementById('dtValor').textContent = "0.001";
+        document.getElementById('scaleRange').value = "1";
+        document.getElementById('scaleValor').textContent = "1";
+        document.getElementById('speedRange').value = "1";
+        document.getElementById('speedValor').textContent = "1";
+        document.getElementById('trackSelect').value = "none";
+        // Reiniciar la configuración personalizada a su estado original
+        config3Body.personalizada = JSON.parse(JSON.stringify(originalPersonalizada));
+        // Cargar la configuración "personalizada" (ahora actualiza dt y speed)
+        sim.loadConfiguration("personalizada");
+        // Reiniciar variables internas de la simulación
+        sim.centerX = 0;
+        sim.centerY = 0;
+        sim.userScaleFactor = 1;
+        sim.scale = sim.userScaleFactor * sim.factorBase;
+        sim.targetScale = sim.scale;
+        sim.autoZoomEnabled = true;
+        document.getElementById('btnToggleAutoZoom').textContent = "Desactivar Zoom Automático";
+      });
+      
       document.getElementById('btnPausar').addEventListener('click', () => {
         sim.paused = !sim.paused;
         document.getElementById('btnPausar').textContent = sim.paused ? "Reanudar" : "Pausar";
       });
       
       document.getElementById('btnReiniciar').addEventListener('click', () => {
-        sim.loadConfiguration(document.getElementById('configSelect').value);
-      });
-      
-      document.getElementById('btnRestablecer').addEventListener('click', () => {
         sim.loadConfiguration(document.getElementById('configSelect').value);
       });
       
@@ -817,23 +849,6 @@
         actualizarListaCuerpos();
         actualizarTrackSelect();
         formAgregar.style.display = "none";
-      });
-      
-      // Evento para actualizar el zoom con la rueda del ratón
-      canvas.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const zoomFactor = Math.exp(e.deltaY * -0.001);
-        sim.userScaleFactor *= zoomFactor;
-        sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
-        document.getElementById('scaleRange').value = sim.userScaleFactor;
-        document.getElementById('scaleValor').textContent = sim.userScaleFactor;
-        if(document.getElementById('trackSelect').value !== "global"){
-          sim.targetScale = sim.userScaleFactor * sim.factorBase;
-        } else {
-          if(!sim.autoZoomEnabled) {
-            sim.targetScale = sim.userScaleFactor * sim.factorBase;
-          }
-        }
       });
       
       function animate() {
