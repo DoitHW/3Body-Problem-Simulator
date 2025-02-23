@@ -8,30 +8,36 @@
       margin: 0; padding: 0; overflow: hidden;
       background-color: #000; font-family: Arial, sans-serif;
       color: #fff; height: 100%;
+      touch-action: none; /* Evita gestos por defecto */
     }
     canvas {
       display: block; background-color: #111;
       width: 100%; height: 100%;
+    }
+    /* Botón de toggle fuera del panel, siempre visible */
+    #btnTogglePanel {
+      position: fixed; top: 10px; left: 10px;
+      z-index: 20; padding: 10px 15px;
+      border: none; border-radius: 4px; background-color: #444;
+      color: #fff; font-size: 14px; cursor: pointer;
     }
     #controlPanel {
       position: fixed; top: 10px; right: 10px;
       background: rgba(20,20,20,0.95); padding: 15px;
       border-radius: 8px; width: 380px; z-index: 10;
       max-height: 90vh; overflow-y: auto;
-      transition: transform 0.3s ease;
     }
-    /* Por defecto el panel se muestra, pero en dispositivos móviles se oculta */
-    @media (max-width: 600px) {
-      #controlPanel {
-        display: none;
-      }
-      #btnTogglePanel {
-        display: block;
-      }
+    /* Encabezado del panel */
+    #panelHeader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 10px;
     }
-    #controlPanel h2, #controlPanel h3 {
-      margin-top: 0; text-align: center;
+    #panelHeader h2 {
+      margin: 0;
     }
+    /* Resto de estilos del panel */
     #controlPanel label {
       display: block; margin-top: 8px; font-size: 14px;
     }
@@ -114,24 +120,25 @@
       border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
     }
     #formAgregar button:hover { opacity: 0.9; }
-    /* Botón para mostrar/ocultar el panel de control en móviles */
-    #btnTogglePanel {
-      position: fixed; top: 10px; left: 10px;
-      z-index: 20; padding: 10px 15px;
-      border: none; border-radius: 4px; background-color: #444;
-      color: #fff; font-size: 14px; cursor: pointer;
-      display: none;
+    @media (max-width: 600px) {
+      #controlPanel {
+        width: 90%;
+        right: 5%;
+        top: 10px;
+      }
     }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
   
-  <!-- Botón para togglear el panel en dispositivos móviles -->
-  <button id="btnTogglePanel">Mostrar Controles</button>
+  <!-- Botón de toggle siempre visible -->
+  <button id="btnTogglePanel">Ocultar Panel</button>
   
   <div id="controlPanel">
-    <h2>Controles</h2>
+    <div id="panelHeader">
+      <h2>Controles</h2>
+    </div>
     <div class="btn-container">
       <button id="btnPausar">Pausar</button>
       <button id="btnReiniciar">Reiniciar</button>
@@ -170,7 +177,7 @@
     <h3>Cuerpos</h3>
     <div id="listaCuerpos"></div>
     <button id="btnAgregar" style="width:100%;">Añadir Cuerpo</button>
-    <small>Arrastra los cuerpos con el ratón en el canvas.</small>
+    <small>Arrastra los cuerpos o, si no tocas ninguno, arrastra para mover la cámara.</small>
   </div>
   
   <div id="infoModal">
@@ -212,21 +219,186 @@
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
       
-      // Toggle para el panel en móviles
+      // Variables para manejo táctil (pinch y pan) y para cámara
+      let isPinching = false;
+      let initialPinchDistance = 0;
+      let initialScale = 0;
+      let initialCenter = {x: 0, y: 0};
+      
+      // Variables para arrastrar: cuerpo o cámara
+      let draggingIndex = null;
+      let draggingCamera = false;
+      let lastMouseX = 0;
+      let lastMouseY = 0;
+      
+      let lastTouchX = 0;
+      let lastTouchY = 0;
+      
+      // Botón de toggle fuera del panel
       const btnTogglePanel = document.getElementById('btnTogglePanel');
       btnTogglePanel.addEventListener('click', () => {
         const panel = document.getElementById('controlPanel');
-        if (panel.style.display === "none" || panel.style.display === "") {
+        if (panel.style.display === "none") {
           panel.style.display = "block";
-          btnTogglePanel.textContent = "Ocultar Controles";
+          btnTogglePanel.textContent = "Ocultar Panel";
         } else {
           panel.style.display = "none";
-          btnTogglePanel.textContent = "Mostrar Controles";
+          btnTogglePanel.textContent = "Mostrar Panel";
         }
       });
       
-      let simulationRunning = true;
+      // Función para convertir coordenadas de pantalla a mundo
+      function screenToWorld(screenX, screenY) {
+        return {
+          x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
+          y: (screenY - canvas.height/2) / sim.scale + sim.centerY
+        };
+      }
       
+      // Eventos de ratón
+      canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const worldPos = screenToWorld(mouseX, mouseY);
+        draggingIndex = null;
+        // Verificar si se ha pulsado sobre algún cuerpo
+        let sobreCuerpo = false;
+        sim.bodies.forEach((b, i) => {
+          const dx = worldPos.x - b.x;
+          const dy = worldPos.y - b.y;
+          if (Math.hypot(dx, dy) < b.radius * 2) {
+            draggingIndex = i;
+            sobreCuerpo = true;
+          }
+        });
+        if (!sobreCuerpo) {
+          draggingCamera = true;
+        }
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+      });
+      
+      canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        if (draggingIndex !== null) {
+          const worldPos = screenToWorld(mouseX, mouseY);
+          const body = sim.bodies[draggingIndex];
+          body.x = worldPos.x;
+          body.y = worldPos.y;
+          body.vx = (mouseX - lastMouseX) / (sim.scale * sim.dt * 10);
+          body.vy = (mouseY - lastMouseY) / (sim.scale * sim.dt * 10);
+          body.trail = [];
+        } else if (draggingCamera) {
+          const dx = mouseX - lastMouseX;
+          const dy = mouseY - lastMouseY;
+          // Ajustar la cámara: se mueve en sentido inverso al movimiento del ratón
+          sim.centerX -= dx / sim.scale;
+          sim.centerY -= dy / sim.scale;
+        }
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+      });
+      
+      canvas.addEventListener('mouseup', () => {
+        draggingIndex = null;
+        draggingCamera = false;
+      });
+      canvas.addEventListener('mouseleave', () => {
+        draggingIndex = null;
+        draggingCamera = false;
+      });
+      
+      // Eventos táctiles
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if(e.touches.length === 1) {
+          const rect = canvas.getBoundingClientRect();
+          const touch = e.touches[0];
+          const touchX = touch.clientX - rect.left;
+          const touchY = touch.clientY - rect.top;
+          const worldPos = screenToWorld(touchX, touchY);
+          draggingIndex = null;
+          let sobreCuerpo = false;
+          sim.bodies.forEach((b, i) => {
+            const dx = worldPos.x - b.x;
+            const dy = worldPos.y - b.y;
+            if (Math.hypot(dx, dy) < b.radius * 2) {
+              draggingIndex = i;
+              sobreCuerpo = true;
+            }
+          });
+          if (!sobreCuerpo) {
+            draggingCamera = true;
+          }
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+        } else if(e.touches.length === 2) {
+          isPinching = true;
+          initialPinchDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          initialScale = sim.scale;
+          initialCenter = {x: sim.centerX, y: sim.centerY};
+        }
+      });
+      
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if(e.touches.length === 1 && !isPinching) {
+          const rect = canvas.getBoundingClientRect();
+          const touch = e.touches[0];
+          const touchX = touch.clientX - rect.left;
+          const touchY = touch.clientY - rect.top;
+          if (draggingIndex !== null) {
+            const worldPos = screenToWorld(touchX, touchY);
+            const body = sim.bodies[draggingIndex];
+            body.x = worldPos.x;
+            body.y = worldPos.y;
+            body.vx = 0;
+            body.vy = 0;
+            body.trail = [];
+          } else if (draggingCamera) {
+            const dx = touch.clientX - lastTouchX;
+            const dy = touch.clientY - lastTouchY;
+            sim.centerX -= dx / sim.scale;
+            sim.centerY -= dy / sim.scale;
+          }
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+        } else if(e.touches.length === 2) {
+          const currentPinchDistance = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const scaleFactor = currentPinchDistance / initialPinchDistance;
+          // En Tracking Global se permite ajustar zoom adicional
+          sim.targetScale = (sim._requiredGlobalScale || sim.factorBase) * sim.userScaleFactor * scaleFactor;
+          const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+          const rect = canvas.getBoundingClientRect();
+          const canvasMid = { x: rect.width/2, y: rect.height/2 };
+          const dx = (midX - canvasMid.x) / sim.scale;
+          const dy = (midY - canvasMid.y) / sim.scale;
+          sim.centerX = initialCenter.x - dx;
+          sim.centerY = initialCenter.y - dy;
+        }
+      });
+      
+      canvas.addEventListener('touchend', (e) => {
+        if(e.touches.length < 2) {
+          isPinching = false;
+        }
+        if(e.touches.length === 0) {
+          draggingIndex = null;
+          draggingCamera = false;
+        }
+      });
+      
+      // Configuración inicial de cuerpos (3 predefinidos para "personalizada")
       const config3Body = {
         lagrange: [
           { m: 1, x: 1, y: 0, vx: 0, vy: 0.577350269, color: "#FF0000" },
@@ -248,7 +420,6 @@
           { m: 1, x: 1, y: 0, vx: 0.306893, vy: 0.125507, color: "#00FF00" },
           { m: 1, x: 0, y: 0, vx: -0.613786, vy: -0.251014, color: "#0000FF" }
         ],
-        // Configuración personalizada con 3 cuerpos predefinidos
         personalizada: [
           { m: 1, x: 0.5, y: 0, vx: 0, vy: 0.5, color: "#FFAA00" },
           { m: 1, x: -0.5, y: 0, vx: 0, vy: -0.5, color: "#00AABB" },
@@ -268,7 +439,7 @@
           this.color = cfg.color || "#FFFFFF";
           this.trail = [];
           this.trailLength = 600;
-          this.radius = 0.02; // Aumentado para mejor visibilidad
+          this.radius = 0.02;
         }
         
         update(dt) {
@@ -276,11 +447,8 @@
           this.vy += this.ay * dt;
           this.x += this.vx * dt;
           this.y += this.vy * dt;
-          
-          // Solo añadir punto al trail si hay suficiente distancia
           const lastPoint = this.trail[this.trail.length - 1];
-          if (!lastPoint || 
-              Math.hypot(this.x - lastPoint.x, this.y - lastPoint.y) > 0.01) {
+          if (!lastPoint || Math.hypot(this.x - lastPoint.x, this.y - lastPoint.y) > 0.01) {
             this.trail.push({ x: this.x, y: this.y });
             if (this.trail.length > this.trailLength) {
               this.trail.shift();
@@ -289,30 +457,24 @@
         }
         
         draw(ctx, scale, offsetX = 0, offsetY = 0) {
-          // Dibujar trail con opacidad gradual
           if (this.trail.length > 1) {
             ctx.beginPath();
             ctx.strokeStyle = this.color;
             ctx.lineWidth = 1.5;
             ctx.globalAlpha = 0.1;
-            
             for (let i = 0; i < this.trail.length - 1; i++) {
               const alpha = (i / this.trail.length) * 0.8 + 0.2;
               ctx.globalAlpha = alpha;
-              
               const x1 = (this.trail[i].x - offsetX) * scale;
               const y1 = (this.trail[i].y - offsetY) * scale;
               const x2 = (this.trail[i + 1].x - offsetX) * scale;
               const y2 = (this.trail[i + 1].y - offsetY) * scale;
-              
               ctx.beginPath();
               ctx.moveTo(x1, y1);
               ctx.lineTo(x2, y2);
               ctx.stroke();
             }
           }
-          
-          // Restaurar opacidad y dibujar cuerpo
           ctx.globalAlpha = 1;
           ctx.beginPath();
           ctx.fillStyle = this.color;
@@ -320,7 +482,6 @@
           const y = (this.y - offsetY) * scale;
           ctx.arc(x, y, this.radius * scale, 0, 2 * Math.PI);
           ctx.fill();
-          // Añadir brillo al cuerpo
           ctx.beginPath();
           ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
           ctx.arc(x, y, this.radius * scale * 0.5, 0, 2 * Math.PI);
@@ -334,47 +495,34 @@
           this.dt = parseFloat(document.getElementById('dtRange').value);
           this.G = 1;
           this.factorBase = 200;
-          this.scale = parseFloat(document.getElementById('scaleRange').value) * this.factorBase;
+          this.userScaleFactor = parseFloat(document.getElementById('scaleRange').value);
+          this.scale = this.userScaleFactor * this.factorBase;
           this.speed = parseFloat(document.getElementById('speedRange').value);
           this.paused = false;
           this.centerX = 0;
           this.centerY = 0;
           this.targetScale = this.scale;
+          this._requiredGlobalScale = this.factorBase;
         }
         
         loadConfiguration(name) {
           if (name === "personalizada") {
-            // Se usa la configuración personalizada predefinida con 3 cuerpos
             this.bodies = [...config3Body.personalizada].map(c => new Body(c));
           } else {
-            if (name === "butterfly") {
-              this.dt = 0.0005;
-            } else {
-              this.dt = 0.001;
-            }
+            this.dt = (name === "butterfly") ? 0.0005 : 0.001;
             this.speed = 1;
             this.scale = this.factorBase;
             this.targetScale = this.scale;
-            
             document.getElementById('dtRange').value = this.dt;
             document.getElementById('dtValor').textContent = this.dt;
-            document.getElementById('scaleRange').value = (this.scale/this.factorBase);
-            document.getElementById('scaleValor').textContent = (this.scale/this.factorBase);
+            document.getElementById('scaleRange').value = (this.scale / this.factorBase);
+            document.getElementById('scaleValor').textContent = (this.scale / this.factorBase);
             document.getElementById('speedRange').value = this.speed;
             document.getElementById('speedValor').textContent = this.speed;
-            
             this.bodies = config3Body[name].map(c => new Body(c));
-            
-            if (name === "butterfly") {
-              document.getElementById('extraInfo').innerHTML = "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović.";
-            } else {
-              document.getElementById('extraInfo').innerHTML = "";
-            }
+            document.getElementById('extraInfo').innerHTML = (name === "butterfly") ? "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović." : "";
           }
-          
-          // Limpiar trails al cambiar configuración
           this.bodies.forEach(b => b.trail = []);
-          
           actualizarListaCuerpos();
           actualizarTrackSelect();
         }
@@ -384,7 +532,6 @@
             b.ax = 0;
             b.ay = 0;
           }
-          
           for (let i = 0; i < this.bodies.length; i++) {
             for (let j = i + 1; j < this.bodies.length; j++) {
               const dx = this.bodies[j].x - this.bodies[i].x;
@@ -392,7 +539,6 @@
               const r2 = dx * dx + dy * dy;
               const r = Math.sqrt(r2);
               const F = this.G / (r2 + 1e-6);
-              
               this.bodies[i].ax += F * dx * this.bodies[j].m;
               this.bodies[i].ay += F * dy * this.bodies[j].m;
               this.bodies[j].ax -= F * dx * this.bodies[i].m;
@@ -403,15 +549,12 @@
         
         update() {
           if (this.paused) return;
-          
           for (let i = 0; i < this.speed; i++) {
             this.computeForces();
             for (let b of this.bodies) {
               b.update(this.dt);
             }
           }
-          
-          // Actualizar centro de la cámara y targetScale según el modo de Tracking seleccionado
           const trackVal = document.getElementById('trackSelect').value;
           if (trackVal.startsWith("body")) {
             const idx = parseInt(trackVal.slice(4));
@@ -434,99 +577,32 @@
               const desiredCenterY = (minY + maxY) / 2;
               this.centerX += (desiredCenterX - this.centerX) * 0.1;
               this.centerY += (desiredCenterY - this.centerY) * 0.1;
-              
-              // Calcular targetScale para que todos los cuerpos queden dentro del canvas
               const boundingWidth = maxX - minX;
               const boundingHeight = maxY - minY;
-              const margin = 1.2; // factor de margen
+              const margin = 1.2;
               const requiredScale = Math.min(canvas.width, canvas.height) / (Math.max(boundingWidth, boundingHeight) * margin);
-              this.targetScale = requiredScale;
+              this._requiredGlobalScale = requiredScale;
+              this.targetScale = requiredScale * this.userScaleFactor;
             }
-          } else {
-            this.centerX += (0 - this.centerX) * 0.1;
-            this.centerY += (0 - this.centerY) * 0.1;
+          } else if (trackVal === "none") {
+            // Cuando es "Ninguno", si el usuario ha arrastrado la cámara, se mantiene; de lo contrario, no se fuerza a centrar.
           }
-          
-          // Interpolación suave del zoom
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         
         draw() {
-          // Limpiar el canvas completamente
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          
-          // Transformación del viewport
           ctx.save();
           ctx.translate(canvas.width / 2, canvas.height / 2);
-          
-          // Dibujar los cuerpos
           for (let b of this.bodies) {
             b.draw(ctx, this.scale, this.centerX, this.centerY);
           }
-          
           ctx.restore();
         }
       }
       
       const sim = new Simulation();
       sim.loadConfiguration(document.getElementById('configSelect').value);
-      
-      // Sistema de drag and drop mejorado
-      let draggingIndex = null;
-      let lastMouseX = 0;
-      let lastMouseY = 0;
-      
-      function screenToWorld(screenX, screenY) {
-        return {
-          x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
-          y: (screenY - canvas.height/2) / sim.scale + sim.centerY
-        };
-      }
-      
-      canvas.addEventListener('mousedown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        
-        const worldPos = screenToWorld(mouseX, mouseY);
-        
-        sim.bodies.forEach((b, i) => {
-          const dx = worldPos.x - b.x;
-          const dy = worldPos.y - b.y;
-          if (Math.sqrt(dx*dx + dy*dy) < b.radius * 2) {
-            draggingIndex = i;
-            lastMouseX = mouseX;
-            lastMouseY = mouseY;
-          }
-        });
-      });
-      
-      canvas.addEventListener('mousemove', (e) => {
-        if (draggingIndex !== null) {
-          const rect = canvas.getBoundingClientRect();
-          const mouseX = e.clientX - rect.left;
-          const mouseY = e.clientY - rect.top;
-          
-          const worldPos = screenToWorld(mouseX, mouseY);
-          const body = sim.bodies[draggingIndex];
-          
-          body.x = worldPos.x;
-          body.y = worldPos.y;
-          
-          // Actualizar velocidad basada en el movimiento del mouse
-          body.vx = (mouseX - lastMouseX) / (sim.scale * sim.dt * 10);
-          body.vy = (mouseY - lastMouseY) / (sim.scale * sim.dt * 10);
-          
-          lastMouseX = mouseX;
-          lastMouseY = mouseY;
-          
-          // Limpiar trail al arrastrar
-          body.trail = [];
-        }
-      });
-      
-      canvas.addEventListener('mouseup', () => { draggingIndex = null; });
-      canvas.addEventListener('mouseleave', () => { draggingIndex = null; });
       
       function actualizarListaCuerpos() {
         const lista = document.getElementById('listaCuerpos');
@@ -535,7 +611,6 @@
           const div = document.createElement('div');
           div.className = "cuerpoItem";
           div.innerHTML = `<strong>Cuerpo ${idx+1}</strong>`;
-          
           const masaDiv = document.createElement('div');
           masaDiv.className = "campo";
           masaDiv.innerHTML = `<label>Masa:</label>
@@ -544,7 +619,6 @@
             b.m = parseFloat(this.value);
           });
           div.appendChild(masaDiv);
-          
           const vxDiv = document.createElement('div');
           vxDiv.className = "campo";
           vxDiv.innerHTML = `<label>Vel X:</label>
@@ -553,7 +627,6 @@
             b.vx = parseFloat(this.value);
           });
           div.appendChild(vxDiv);
-          
           const vyDiv = document.createElement('div');
           vyDiv.className = "campo";
           vyDiv.innerHTML = `<label>Vel Y:</label>
@@ -562,7 +635,6 @@
             b.vy = parseFloat(this.value);
           });
           div.appendChild(vyDiv);
-          
           const colorDiv = document.createElement('div');
           colorDiv.className = "campo";
           colorDiv.innerHTML = `<label>Color:</label>
@@ -571,7 +643,6 @@
             b.color = this.value;
           });
           div.appendChild(colorDiv);
-          
           const pxDiv = document.createElement('div');
           pxDiv.className = "campo";
           pxDiv.innerHTML = `<label>Pos X:</label>
@@ -581,7 +652,6 @@
             b.trail = [];
           });
           div.appendChild(pxDiv);
-          
           const pyDiv = document.createElement('div');
           pyDiv.className = "campo";
           pyDiv.innerHTML = `<label>Pos Y:</label>
@@ -591,7 +661,6 @@
             b.trail = [];
           });
           div.appendChild(pyDiv);
-          
           const btnEliminar = document.createElement('button');
           btnEliminar.className = "btnEliminar";
           btnEliminar.textContent = "Eliminar";
@@ -601,7 +670,6 @@
             actualizarTrackSelect();
           });
           div.appendChild(btnEliminar);
-          
           lista.appendChild(div);
         });
       }
@@ -610,12 +678,10 @@
         const trackSelect = document.getElementById('trackSelect');
         const oldVal = trackSelect.value;
         trackSelect.innerHTML = '<option value="none">Ninguno</option>';
-        // Añadir la opción de Tracking Global
         const opGlobal = document.createElement('option');
         opGlobal.value = "global";
         opGlobal.textContent = "Tracking Global";
         trackSelect.appendChild(opGlobal);
-        // Añadir opciones para cada cuerpo
         sim.bodies.forEach((b, idx) => {
           const op = document.createElement('option');
           op.value = `body${idx}`;
@@ -629,7 +695,6 @@
         }
       }
       
-      // Event Listeners
       document.getElementById('btnPausar').addEventListener('click', () => {
         sim.paused = !sim.paused;
         document.getElementById('btnPausar').textContent = sim.paused ? "Reanudar" : "Pausar";
@@ -653,8 +718,11 @@
       });
       
       document.getElementById('scaleRange').addEventListener('input', (e) => {
-        sim.targetScale = parseFloat(e.target.value) * sim.factorBase;
+        sim.userScaleFactor = parseFloat(e.target.value);
         document.getElementById('scaleValor').textContent = e.target.value;
+        if(document.getElementById('trackSelect').value !== "global"){
+          sim.targetScale = sim.userScaleFactor * sim.factorBase;
+        }
       });
       
       document.getElementById('speedRange').addEventListener('input', (e) => {
@@ -668,7 +736,6 @@
         sim.centerY = 0;
       });
       
-      // Modal Info
       document.getElementById('btnInfo').addEventListener('click', () => {
         document.getElementById('infoModal').style.display = "block";
       });
@@ -677,9 +744,7 @@
         document.getElementById('infoModal').style.display = "none";
       });
       
-      // Form Agregar
       const formAgregar = document.getElementById('formAgregar');
-      
       document.getElementById('btnAgregar').addEventListener('click', () => {
         formAgregar.style.display = "block";
       });
@@ -695,11 +760,9 @@
         const x = parseFloat(document.getElementById('nuevoPosX').value);
         const y = parseFloat(document.getElementById('nuevoPosY').value);
         const color = document.getElementById('nuevoColor').value;
-        
         const newBody = new Body({ m, x, y, vx, vy, color });
         config3Body.personalizada.push({ m, x, y, vx, vy, color });
         sim.bodies.push(newBody);
-        
         actualizarListaCuerpos();
         actualizarTrackSelect();
         formAgregar.style.display = "none";
