@@ -382,14 +382,39 @@
     <small style="color:#aaa; display:block; margin-top:10px;">Arrastra los cuerpos o, si no tocas ninguno, arrastra para mover la cámara.</small>
   </div>
   
-  <div id="infoModal">
-    <h2>Información sobre las Configuraciones</h2>
-    <p><strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.</p>
-    <p><strong>El Ocho:</strong> Solución de Chenciner–Montgomery donde tres masas siguen una trayectoria en forma de 8.</p>
-    <p><strong>Euler:</strong> Tres masas en configuración colineal con movimiento periódico.</p>
-    <p><strong>Butterfly‑1:</strong> Solución de Šuvakov–Dmitrašinović con trayectoria tipo mariposa.</p>
-    <button id="btnCerrarInfo" style="width: 100%">Cerrar</button>
-  </div>
+<div id="infoModal">
+  <h2>Manual de Instrucciones y Configuraciones</h2>
+  <p>
+    <strong>Uso del Simulador:</strong><br>
+    Este simulador muestra la interacción gravitacional entre tres cuerpos. Puedes seleccionar diferentes configuraciones predefinidas (por ejemplo, Lagrange, Euler, etc.) o utilizar la opción personalizada para crear tu propio sistema.
+  </p>
+  <p>
+    <strong>Controles Principales:</strong><br>
+    - <em>Paso temporal (dt):</em> Controla el intervalo de tiempo de la simulación. Valores más pequeños ofrecen mayor precisión pero requieren más cálculos.<br>
+    - <em>Escala:</em> Ajusta el zoom de la vista. Puedes utilizar la rueda del ratón o el control para acercar o alejar.<br>
+    - <em>Velocidad:</em> Define la cantidad de iteraciones por fotograma. Aumentar este valor acelera la simulación.
+  </p>
+  <p>
+    <strong>Tracking de Cámara:</strong><br>
+    - <em>Ninguno:</em> La cámara se puede mover manualmente arrastrando el lienzo.<br>
+    - <em>Tracking Global:</em> La cámara se centra automáticamente en el sistema. También puedes activar o desactivar el zoom automático.<br>
+    - <em>Track cuerpo N:</em> La cámara sigue el cuerpo seleccionado.
+  </p>
+  <p>
+    <strong>Agregar y Modificar Cuerpos:</strong><br>
+    En la sección "Cuerpos" puedes modificar individualmente la masa, velocidad, posición y color de cada cuerpo. Al arrastrarlos en el canvas, se actualiza su posición.
+  </p>
+  <hr>
+  <p>
+    <strong>Información sobre las Configuraciones:</strong><br>
+    <strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.<br>
+    <strong>El Ocho:</strong> Solución de Chenciner–Montgomery donde tres masas siguen una trayectoria en forma de 8.<br>
+    <strong>Euler:</strong> Tres masas en configuración colineal con movimiento periódico.<br>
+    <strong>Butterfly‑1:</strong> Solución de Šuvakov–Dmitrašinović con trayectoria tipo mariposa.
+  </p>
+  <button id="btnCerrarInfo" style="width: 100%">Cerrar</button>
+</div>
+
   
   <div id="formAgregar">
     <h3>Nuevo Cuerpo</h3>
