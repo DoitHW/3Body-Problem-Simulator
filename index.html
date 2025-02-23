@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Simulador Tres Cuerpos – Corrección Visualización</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; overflow: hidden;
+      background-color: #000; font-family: Arial, sans-serif;
+      color: #fff; height: 100%;
+    }
+    canvas {
+      display: block; background-color: #111;
+      width: 100%; height: 100%;
+    }
+    #controlPanel {
+      position: fixed; top: 10px; right: 10px;
+      background: rgba(20,20,20,0.95); padding: 15px;
+      border-radius: 8px; width: 380px; z-index: 10;
+      max-height: 90vh; overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+    /* Por defecto el panel se muestra, pero en dispositivos móviles se oculta */
+    @media (max-width: 600px) {
+      #controlPanel {
+        display: none;
+      }
+      #btnTogglePanel {
+        display: block;
+      }
+    }
+    #controlPanel h2, #controlPanel h3 {
+      margin-top: 0; text-align: center;
+    }
+    #controlPanel label {
+      display: block; margin-top: 8px; font-size: 14px;
+    }
+    #controlPanel input[type="number"],
+    #controlPanel input[type="color"],
+    #controlPanel input[type="range"],
+    #controlPanel select,
+    #controlPanel input[type="text"] {
+      width: 100%; padding: 4px; margin-top: 4px;
+      box-sizing: border-box; font-size: 13px;
+    }
+    #controlPanel button {
+      width: 48%; padding: 8px; margin-top: 10px;
+      border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
+    }
+    #controlPanel button:hover {
+      opacity: 0.9;
+    }
+    .btn-container {
+      display: flex; justify-content: space-between;
+    }
+    #extraInfo {
+      margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.7);
+      border-radius: 4px; font-size: 12px;
+    }
+    #infoModal {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20,20,20,0.98); padding: 20px;
+      border-radius: 8px; z-index: 30; width: 80%;
+      max-height: 80vh; overflow-y: auto;
+    }
+    #infoModal h2 {
+      text-align: center;
+    }
+    #infoModal p {
+      font-size: 13px; line-height: 1.4;
+    }
+    #btnCerrarInfo {
+      display: block; margin: 10px auto 0 auto; padding: 8px 16px;
+      border: none; border-radius: 4px; background-color: #555;
+      color: #fff; cursor: pointer;
+    }
+    #listaCuerpos {
+      margin-top: 10px; border: 1px solid #444;
+      padding: 5px;
+    }
+    .cuerpoItem {
+      border-bottom: 1px solid #555; padding: 5px 0; margin-bottom: 5px;
+    }
+    .cuerpoItem:last-child {
+      border-bottom: none;
+    }
+    .campo { margin-top: 4px; }
+    .campo label { font-size: 12px; }
+    .campo input {
+      width: 100%; padding: 2px; font-size: 12px;
+    }
+    .btnEliminar {
+      background-color: #c0392b; color: #fff; border: none; border-radius: 4px;
+      padding: 4px; cursor: pointer; font-size: 12px; margin-top: 4px;
+    }
+    #formAgregar {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20,20,20,0.95); padding: 20px;
+      border-radius: 8px; z-index: 20; width: 300px;
+    }
+    #formAgregar h3 { text-align: center; margin-top: 0; }
+    #formAgregar label {
+      display: block; margin-top: 8px; font-size: 14px;
+    }
+    #formAgregar input[type="number"],
+    #formAgregar input[type="color"] {
+      width: 100%; padding: 4px; margin-top: 4px;
+      box-sizing: border-box; font-size: 13px;
+    }
+    #formAgregar button {
+      width: 100%; padding: 8px; margin-top: 10px;
+      border: none; border-radius: 4px; cursor: pointer; font-size: 14px;
+    }
+    #formAgregar button:hover { opacity: 0.9; }
+    /* Botón para mostrar/ocultar el panel de control en móviles */
+    #btnTogglePanel {
+      position: fixed; top: 10px; left: 10px;
+      z-index: 20; padding: 10px 15px;
+      border: none; border-radius: 4px; background-color: #444;
+      color: #fff; font-size: 14px; cursor: pointer;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  
+  <!-- Botón para togglear el panel en dispositivos móviles -->
+  <button id="btnTogglePanel">Mostrar Controles</button>
+  
+  <div id="controlPanel">
+    <h2>Controles</h2>
+    <div class="btn-container">
+      <button id="btnPausar">Pausar</button>
+      <button id="btnReiniciar">Reiniciar</button>
+    </div>
+    <div class="btn-container">
+      <button id="btnRestablecer" style="width:98%;">Restablecer por defecto</button>
+    </div>
+    
+    <label for="configSelect">Configuración:</label>
+    <select id="configSelect">
+      <option value="personalizada" selected>Personalizada</option>
+      <option value="lagrange">Lagrange (Triángulo)</option>
+      <option value="figura8">El Ocho</option>
+      <option value="euler">Euler (Colineal)</option>
+      <option value="butterfly">Butterfly‑1</option>
+    </select>
+    <div id="extraInfo"></div>
+    
+    <label for="dtRange">Paso temporal (dt): <span id="dtValor">0.001</span></label>
+    <input type="range" id="dtRange" min="0.0001" max="0.01" step="0.0001" value="0.001">
+    
+    <label for="scaleRange">Escala: <span id="scaleValor">1</span></label>
+    <input type="range" id="scaleRange" min="0.1" max="5" step="0.1" value="1">
+    
+    <label for="speedRange">Velocidad: <span id="speedValor">1</span>x</label>
+    <input type="range" id="speedRange" min="0.1" max="50" step="0.1" value="1">
+    
+    <label for="trackSelect">Tracking Cámara:</label>
+    <select id="trackSelect">
+      <option value="none">Ninguno</option>
+    </select>
+    
+    <div class="btn-container">
+      <button id="btnInfo" style="width:100%;">Información</button>
+    </div>
+    <h3>Cuerpos</h3>
+    <div id="listaCuerpos"></div>
+    <button id="btnAgregar" style="width:100%;">Añadir Cuerpo</button>
+    <small>Arrastra los cuerpos con el ratón en el canvas.</small>
+  </div>
+  
+  <div id="infoModal">
+    <h2>Información sobre las Configuraciones</h2>
+    <p><strong>Lagrange:</strong> Tres masas iguales formando un triángulo equilátero en rotación.</p>
+    <p><strong>El Ocho:</strong> Solución de Chenciner–Montgomery donde tres masas siguen una trayectoria en forma de 8.</p>
+    <p><strong>Euler:</strong> Tres masas en configuración colineal con movimiento periódico.</p>
+    <p><strong>Butterfly‑1:</strong> Solución de Šuvakov–Dmitrašinović con trayectoria tipo mariposa.</p>
+    <button id="btnCerrarInfo" style="width: 100%">Cerrar</button>
+  </div>
+  
+  <div id="formAgregar">
+    <h3>Nuevo Cuerpo</h3>
+    <label for="nuevaMasa">Masa:</label>
+    <input type="number" id="nuevaMasa" value="1" step="0.1">
+    <label for="nuevaVx">Velocidad X:</label>
+    <input type="number" id="nuevaVx" value="0" step="0.1">
+    <label for="nuevaVy">Velocidad Y:</label>
+    <input type="number" id="nuevaVy" value="0" step="0.1">
+    <label for="nuevoPosX">Posición X:</label>
+    <input type="number" id="nuevoPosX" value="0" step="1">
+    <label for="nuevoPosY">Posición Y:</label>
+    <input type="number" id="nuevoPosY" value="0" step="1">
+    <label for="nuevoColor">Color:</label>
+    <input type="color" id="nuevoColor" value="#FFFFFF">
+    <button id="btnConfirmarAgregar">Agregar</button>
+    <button id="btnCancelarAgregar" style="background-color:#777;">Cancelar</button>
+  </div>
+  
+  <script>
+    (function(){
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+      
+      // Toggle para el panel en móviles
+      const btnTogglePanel = document.getElementById('btnTogglePanel');
+      btnTogglePanel.addEventListener('click', () => {
+        const panel = document.getElementById('controlPanel');
+        if (panel.style.display === "none" || panel.style.display === "") {
+          panel.style.display = "block";
+          btnTogglePanel.textContent = "Ocultar Controles";
+        } else {
+          panel.style.display = "none";
+          btnTogglePanel.textContent = "Mostrar Controles";
+        }
+      });
+      
+      let simulationRunning = true;
+      
+      const config3Body = {
+        lagrange: [
+          { m: 1, x: 1, y: 0, vx: 0, vy: 0.577350269, color: "#FF0000" },
+          { m: 1, x: -0.5, y: 0.866025404, vx: -0.5, vy: -0.288675134, color: "#00FF00" },
+          { m: 1, x: -0.5, y: -0.866025404, vx: 0.5, vy: -0.288675134, color: "#0000FF" }
+        ],
+        figura8: [
+          { m: 1, x: 0.97000436, y: -0.24308753, vx: -0.93240737/2, vy: 0.86473146/2, color: "#FF0000" },
+          { m: 1, x: -0.97000436, y: 0.24308753, vx: 0.93240737/2, vy: -0.86473146/2, color: "#00FF00" },
+          { m: 1, x: 0, y: 0, vx: 0, vy: 0, color: "#0000FF" }
+        ],
+        euler: [
+          { m: 1, x: -1, y: 0, vx: 0, vy: 0.3, color: "#FF8800" },
+          { m: 1, x: 0, y: 0, vx: 0, vy: -0.6, color: "#88FF00" },
+          { m: 1, x: 1, y: 0, vx: 0, vy: 0.3, color: "#0088FF" }
+        ],
+        butterfly: [
+          { m: 1, x: -1, y: 0, vx: 0.306893, vy: 0.125507, color: "#FF0000" },
+          { m: 1, x: 1, y: 0, vx: 0.306893, vy: 0.125507, color: "#00FF00" },
+          { m: 1, x: 0, y: 0, vx: -0.613786, vy: -0.251014, color: "#0000FF" }
+        ],
+        // Configuración personalizada con 3 cuerpos predefinidos
+        personalizada: [
+          { m: 1, x: 0.5, y: 0, vx: 0, vy: 0.5, color: "#FFAA00" },
+          { m: 1, x: -0.5, y: 0, vx: 0, vy: -0.5, color: "#00AABB" },
+          { m: 1, x: 0, y: 0.5, vx: 0.5, vy: 0, color: "#AA00FF" }
+        ]
+      };
+      
+      class Body {
+        constructor(cfg) {
+          this.m = cfg.m;
+          this.x = cfg.x;
+          this.y = cfg.y;
+          this.vx = cfg.vx;
+          this.vy = cfg.vy;
+          this.ax = 0;
+          this.ay = 0;
+          this.color = cfg.color || "#FFFFFF";
+          this.trail = [];
+          this.trailLength = 600;
+          this.radius = 0.02; // Aumentado para mejor visibilidad
+        }
+        
+        update(dt) {
+          this.vx += this.ax * dt;
+          this.vy += this.ay * dt;
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          
+          // Solo añadir punto al trail si hay suficiente distancia
+          const lastPoint = this.trail[this.trail.length - 1];
+          if (!lastPoint || 
+              Math.hypot(this.x - lastPoint.x, this.y - lastPoint.y) > 0.01) {
+            this.trail.push({ x: this.x, y: this.y });
+            if (this.trail.length > this.trailLength) {
+              this.trail.shift();
+            }
+          }
+        }
+        
+        draw(ctx, scale, offsetX = 0, offsetY = 0) {
+          // Dibujar trail con opacidad gradual
+          if (this.trail.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 1.5;
+            ctx.globalAlpha = 0.1;
+            
+            for (let i = 0; i < this.trail.length - 1; i++) {
+              const alpha = (i / this.trail.length) * 0.8 + 0.2;
+              ctx.globalAlpha = alpha;
+              
+              const x1 = (this.trail[i].x - offsetX) * scale;
+              const y1 = (this.trail[i].y - offsetY) * scale;
+              const x2 = (this.trail[i + 1].x - offsetX) * scale;
+              const y2 = (this.trail[i + 1].y - offsetY) * scale;
+              
+              ctx.beginPath();
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
+          }
+          
+          // Restaurar opacidad y dibujar cuerpo
+          ctx.globalAlpha = 1;
+          ctx.beginPath();
+          ctx.fillStyle = this.color;
+          const x = (this.x - offsetX) * scale;
+          const y = (this.y - offsetY) * scale;
+          ctx.arc(x, y, this.radius * scale, 0, 2 * Math.PI);
+          ctx.fill();
+          // Añadir brillo al cuerpo
+          ctx.beginPath();
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.arc(x, y, this.radius * scale * 0.5, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+      
+      class Simulation {
+        constructor() {
+          this.bodies = [];
+          this.dt = parseFloat(document.getElementById('dtRange').value);
+          this.G = 1;
+          this.factorBase = 200;
+          this.scale = parseFloat(document.getElementById('scaleRange').value) * this.factorBase;
+          this.speed = parseFloat(document.getElementById('speedRange').value);
+          this.paused = false;
+          this.centerX = 0;
+          this.centerY = 0;
+          this.targetScale = this.scale;
+        }
+        
+        loadConfiguration(name) {
+          if (name === "personalizada") {
+            // Se usa la configuración personalizada predefinida con 3 cuerpos
+            this.bodies = [...config3Body.personalizada].map(c => new Body(c));
+          } else {
+            if (name === "butterfly") {
+              this.dt = 0.0005;
+            } else {
+              this.dt = 0.001;
+            }
+            this.speed = 1;
+            this.scale = this.factorBase;
+            this.targetScale = this.scale;
+            
+            document.getElementById('dtRange').value = this.dt;
+            document.getElementById('dtValor').textContent = this.dt;
+            document.getElementById('scaleRange').value = (this.scale/this.factorBase);
+            document.getElementById('scaleValor').textContent = (this.scale/this.factorBase);
+            document.getElementById('speedRange').value = this.speed;
+            document.getElementById('speedValor').textContent = this.speed;
+            
+            this.bodies = config3Body[name].map(c => new Body(c));
+            
+            if (name === "butterfly") {
+              document.getElementById('extraInfo').innerHTML = "<strong>Butterfly-1</strong><br>Solución de Šuvakov–Dmitrašinović.";
+            } else {
+              document.getElementById('extraInfo').innerHTML = "";
+            }
+          }
+          
+          // Limpiar trails al cambiar configuración
+          this.bodies.forEach(b => b.trail = []);
+          
+          actualizarListaCuerpos();
+          actualizarTrackSelect();
+        }
+        
+        computeForces() {
+          for (let b of this.bodies) {
+            b.ax = 0;
+            b.ay = 0;
+          }
+          
+          for (let i = 0; i < this.bodies.length; i++) {
+            for (let j = i + 1; j < this.bodies.length; j++) {
+              const dx = this.bodies[j].x - this.bodies[i].x;
+              const dy = this.bodies[j].y - this.bodies[i].y;
+              const r2 = dx * dx + dy * dy;
+              const r = Math.sqrt(r2);
+              const F = this.G / (r2 + 1e-6);
+              
+              this.bodies[i].ax += F * dx * this.bodies[j].m;
+              this.bodies[i].ay += F * dy * this.bodies[j].m;
+              this.bodies[j].ax -= F * dx * this.bodies[i].m;
+              this.bodies[j].ay -= F * dy * this.bodies[i].m;
+            }
+          }
+        }
+        
+        update() {
+          if (this.paused) return;
+          
+          for (let i = 0; i < this.speed; i++) {
+            this.computeForces();
+            for (let b of this.bodies) {
+              b.update(this.dt);
+            }
+          }
+          
+          // Actualizar centro de la cámara y targetScale según el modo de Tracking seleccionado
+          const trackVal = document.getElementById('trackSelect').value;
+          if (trackVal.startsWith("body")) {
+            const idx = parseInt(trackVal.slice(4));
+            if (this.bodies[idx]) {
+              const targetX = this.bodies[idx].x;
+              const targetY = this.bodies[idx].y;
+              this.centerX += (targetX - this.centerX) * 0.1;
+              this.centerY += (targetY - this.centerY) * 0.1;
+            }
+          } else if (trackVal === "global") {
+            if (this.bodies.length > 0) {
+              let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+              for (let b of this.bodies) {
+                if (b.x < minX) minX = b.x;
+                if (b.x > maxX) maxX = b.x;
+                if (b.y < minY) minY = b.y;
+                if (b.y > maxY) maxY = b.y;
+              }
+              const desiredCenterX = (minX + maxX) / 2;
+              const desiredCenterY = (minY + maxY) / 2;
+              this.centerX += (desiredCenterX - this.centerX) * 0.1;
+              this.centerY += (desiredCenterY - this.centerY) * 0.1;
+              
+              // Calcular targetScale para que todos los cuerpos queden dentro del canvas
+              const boundingWidth = maxX - minX;
+              const boundingHeight = maxY - minY;
+              const margin = 1.2; // factor de margen
+              const requiredScale = Math.min(canvas.width, canvas.height) / (Math.max(boundingWidth, boundingHeight) * margin);
+              this.targetScale = requiredScale;
+            }
+          } else {
+            this.centerX += (0 - this.centerX) * 0.1;
+            this.centerY += (0 - this.centerY) * 0.1;
+          }
+          
+          // Interpolación suave del zoom
+          this.scale += (this.targetScale - this.scale) * 0.1;
+        }
+        
+        draw() {
+          // Limpiar el canvas completamente
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Transformación del viewport
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          
+          // Dibujar los cuerpos
+          for (let b of this.bodies) {
+            b.draw(ctx, this.scale, this.centerX, this.centerY);
+          }
+          
+          ctx.restore();
+        }
+      }
+      
+      const sim = new Simulation();
+      sim.loadConfiguration(document.getElementById('configSelect').value);
+      
+      // Sistema de drag and drop mejorado
+      let draggingIndex = null;
+      let lastMouseX = 0;
+      let lastMouseY = 0;
+      
+      function screenToWorld(screenX, screenY) {
+        return {
+          x: (screenX - canvas.width/2) / sim.scale + sim.centerX,
+          y: (screenY - canvas.height/2) / sim.scale + sim.centerY
+        };
+      }
+      
+      canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        const worldPos = screenToWorld(mouseX, mouseY);
+        
+        sim.bodies.forEach((b, i) => {
+          const dx = worldPos.x - b.x;
+          const dy = worldPos.y - b.y;
+          if (Math.sqrt(dx*dx + dy*dy) < b.radius * 2) {
+            draggingIndex = i;
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+          }
+        });
+      });
+      
+      canvas.addEventListener('mousemove', (e) => {
+        if (draggingIndex !== null) {
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          const worldPos = screenToWorld(mouseX, mouseY);
+          const body = sim.bodies[draggingIndex];
+          
+          body.x = worldPos.x;
+          body.y = worldPos.y;
+          
+          // Actualizar velocidad basada en el movimiento del mouse
+          body.vx = (mouseX - lastMouseX) / (sim.scale * sim.dt * 10);
+          body.vy = (mouseY - lastMouseY) / (sim.scale * sim.dt * 10);
+          
+          lastMouseX = mouseX;
+          lastMouseY = mouseY;
+          
+          // Limpiar trail al arrastrar
+          body.trail = [];
+        }
+      });
+      
+      canvas.addEventListener('mouseup', () => { draggingIndex = null; });
+      canvas.addEventListener('mouseleave', () => { draggingIndex = null; });
+      
+      function actualizarListaCuerpos() {
+        const lista = document.getElementById('listaCuerpos');
+        lista.innerHTML = "";
+        sim.bodies.forEach((b, idx) => {
+          const div = document.createElement('div');
+          div.className = "cuerpoItem";
+          div.innerHTML = `<strong>Cuerpo ${idx+1}</strong>`;
+          
+          const masaDiv = document.createElement('div');
+          masaDiv.className = "campo";
+          masaDiv.innerHTML = `<label>Masa:</label>
+            <input type="number" step="0.1" value="${b.m}">`;
+          masaDiv.querySelector('input').addEventListener('change', function() {
+            b.m = parseFloat(this.value);
+          });
+          div.appendChild(masaDiv);
+          
+          const vxDiv = document.createElement('div');
+          vxDiv.className = "campo";
+          vxDiv.innerHTML = `<label>Vel X:</label>
+            <input type="number" step="0.1" value="${b.vx.toFixed(3)}">`;
+          vxDiv.querySelector('input').addEventListener('change', function() {
+            b.vx = parseFloat(this.value);
+          });
+          div.appendChild(vxDiv);
+          
+          const vyDiv = document.createElement('div');
+          vyDiv.className = "campo";
+          vyDiv.innerHTML = `<label>Vel Y:</label>
+            <input type="number" step="0.1" value="${b.vy.toFixed(3)}">`;
+          vyDiv.querySelector('input').addEventListener('change', function() {
+            b.vy = parseFloat(this.value);
+          });
+          div.appendChild(vyDiv);
+          
+          const colorDiv = document.createElement('div');
+          colorDiv.className = "campo";
+          colorDiv.innerHTML = `<label>Color:</label>
+            <input type="color" value="${b.color}">`;
+          colorDiv.querySelector('input').addEventListener('change', function() {
+            b.color = this.value;
+          });
+          div.appendChild(colorDiv);
+          
+          const pxDiv = document.createElement('div');
+          pxDiv.className = "campo";
+          pxDiv.innerHTML = `<label>Pos X:</label>
+            <input type="number" step="0.1" value="${b.x.toFixed(3)}">`;
+          pxDiv.querySelector('input').addEventListener('change', function() {
+            b.x = parseFloat(this.value);
+            b.trail = [];
+          });
+          div.appendChild(pxDiv);
+          
+          const pyDiv = document.createElement('div');
+          pyDiv.className = "campo";
+          pyDiv.innerHTML = `<label>Pos Y:</label>
+            <input type="number" step="0.1" value="${b.y.toFixed(3)}">`;
+          pyDiv.querySelector('input').addEventListener('change', function() {
+            b.y = parseFloat(this.value);
+            b.trail = [];
+          });
+          div.appendChild(pyDiv);
+          
+          const btnEliminar = document.createElement('button');
+          btnEliminar.className = "btnEliminar";
+          btnEliminar.textContent = "Eliminar";
+          btnEliminar.addEventListener('click', () => {
+            sim.bodies.splice(idx, 1);
+            actualizarListaCuerpos();
+            actualizarTrackSelect();
+          });
+          div.appendChild(btnEliminar);
+          
+          lista.appendChild(div);
+        });
+      }
+      
+      function actualizarTrackSelect() {
+        const trackSelect = document.getElementById('trackSelect');
+        const oldVal = trackSelect.value;
+        trackSelect.innerHTML = '<option value="none">Ninguno</option>';
+        // Añadir la opción de Tracking Global
+        const opGlobal = document.createElement('option');
+        opGlobal.value = "global";
+        opGlobal.textContent = "Tracking Global";
+        trackSelect.appendChild(opGlobal);
+        // Añadir opciones para cada cuerpo
+        sim.bodies.forEach((b, idx) => {
+          const op = document.createElement('option');
+          op.value = `body${idx}`;
+          op.textContent = `Track cuerpo ${idx+1}`;
+          trackSelect.appendChild(op);
+        });
+        if ([...trackSelect.options].some(o => o.value === oldVal)) {
+          trackSelect.value = oldVal;
+        } else {
+          trackSelect.value = "none";
+        }
+      }
+      
+      // Event Listeners
+      document.getElementById('btnPausar').addEventListener('click', () => {
+        sim.paused = !sim.paused;
+        document.getElementById('btnPausar').textContent = sim.paused ? "Reanudar" : "Pausar";
+      });
+      
+      document.getElementById('btnReiniciar').addEventListener('click', () => {
+        sim.loadConfiguration(document.getElementById('configSelect').value);
+      });
+      
+      document.getElementById('btnRestablecer').addEventListener('click', () => {
+        sim.loadConfiguration(document.getElementById('configSelect').value);
+      });
+      
+      document.getElementById('configSelect').addEventListener('change', (e) => {
+        sim.loadConfiguration(e.target.value);
+      });
+      
+      document.getElementById('dtRange').addEventListener('input', (e) => {
+        sim.dt = parseFloat(e.target.value);
+        document.getElementById('dtValor').textContent = sim.dt;
+      });
+      
+      document.getElementById('scaleRange').addEventListener('input', (e) => {
+        sim.targetScale = parseFloat(e.target.value) * sim.factorBase;
+        document.getElementById('scaleValor').textContent = e.target.value;
+      });
+      
+      document.getElementById('speedRange').addEventListener('input', (e) => {
+        sim.speed = parseFloat(e.target.value);
+        document.getElementById('speedValor').textContent = e.target.value;
+      });
+      
+      document.getElementById('trackSelect').addEventListener('change', () => {
+        sim.bodies.forEach(b => b.trail = []);
+        sim.centerX = 0;
+        sim.centerY = 0;
+      });
+      
+      // Modal Info
+      document.getElementById('btnInfo').addEventListener('click', () => {
+        document.getElementById('infoModal').style.display = "block";
+      });
+      
+      document.getElementById('btnCerrarInfo').addEventListener('click', () => {
+        document.getElementById('infoModal').style.display = "none";
+      });
+      
+      // Form Agregar
+      const formAgregar = document.getElementById('formAgregar');
+      
+      document.getElementById('btnAgregar').addEventListener('click', () => {
+        formAgregar.style.display = "block";
+      });
+      
+      document.getElementById('btnCancelarAgregar').addEventListener('click', () => {
+        formAgregar.style.display = "none";
+      });
+      
+      document.getElementById('btnConfirmarAgregar').addEventListener('click', () => {
+        const m = parseFloat(document.getElementById('nuevaMasa').value);
+        const vx = parseFloat(document.getElementById('nuevaVx').value);
+        const vy = parseFloat(document.getElementById('nuevaVy').value);
+        const x = parseFloat(document.getElementById('nuevoPosX').value);
+        const y = parseFloat(document.getElementById('nuevoPosY').value);
+        const color = document.getElementById('nuevoColor').value;
+        
+        const newBody = new Body({ m, x, y, vx, vy, color });
+        config3Body.personalizada.push({ m, x, y, vx, vy, color });
+        sim.bodies.push(newBody);
+        
+        actualizarListaCuerpos();
+        actualizarTrackSelect();
+        formAgregar.style.display = "none";
+      });
+      
+      function animate() {
+        sim.update();
+        sim.draw();
+        requestAnimationFrame(animate);
+      }
+      
+      animate();
+    })();
+  </script>
+</body>
+</html>
