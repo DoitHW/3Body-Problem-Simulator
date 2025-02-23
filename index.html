@@ -20,11 +20,19 @@
       height: 100%;
     }
     
-    #btnTogglePanel {
-      position: fixed; 
-      top: 20px; 
+    /* Nuevo contenedor para los controles superiores */
+    #topControls {
+      position: fixed;
+      top: 20px;
       left: 20px;
-      z-index: 20; 
+      display: flex;
+      align-items: center;
+      gap: 20px; /* Separación constante */
+      z-index: 20;
+    }
+    
+    /* Ya no se posicionan individualmente, se dejan las reglas generales */
+    #btnTogglePanel {
       padding: 10px 20px;
       border: 1px solid #555; 
       border-radius: 5px; 
@@ -40,10 +48,6 @@
     }
     
     #langSelect {
-      position: fixed;
-      top: 20px;
-      left: 140px; 
-      z-index: 20;
       padding: 10px;
       border: 1px solid #555;
       border-radius: 5px;
@@ -409,12 +413,14 @@
 <body>
   <canvas id="canvas"></canvas>
 
-  <!-- Botón de toggle siempre visible -->
-  <button id="btnTogglePanel">Ocultar Panel</button>
-  <select id="langSelect">
-    <option value="es">Español</option>
-    <option value="en">English</option>
-  </select>
+  <!-- Contenedor para los controles superiores -->
+  <div id="topControls">
+    <button id="btnTogglePanel">Ocultar Panel</button>
+    <select id="langSelect">
+      <option value="es">Español</option>
+      <option value="en">English</option>
+    </select>
+  </div>
 
   <div id="controlPanel" style="display:block;">
     <div id="panelHeader">
@@ -614,7 +620,7 @@
           `
         }
       };
-
+    
       function updateText(lang) {
         const langData = translations[lang];
         if (!langData) {
@@ -816,7 +822,6 @@
         }
       }
     
-      const btnTogglePanel = document.getElementById('btnTogglePanel');
       btnTogglePanel.addEventListener('click', () => {
         const panel = document.getElementById('controlPanel');
         if (panel.style.display === "none") {
