@@ -37,7 +37,7 @@
     #panelHeader h2 {
       margin: 0;
     }
-    /* Contenedor para el toggle de zoom global */
+    /* Contenedor para el toggle de zoom automático */
     #globalZoomToggleContainer {
       margin-top: 8px;
       display: none;
@@ -184,7 +184,7 @@
     <select id="trackSelect">
       <option value="none">Ninguno</option>
     </select>
-    <!-- Contenedor para el botón de toggle de zoom automático en Tracking Global -->
+    <!-- Contenedor para el toggle de zoom automático en modo global -->
     <div id="globalZoomToggleContainer">
       <button id="btnToggleAutoZoom">Desactivar Zoom Automático</button>
     </div>
@@ -289,6 +289,7 @@
             sobreCuerpo = true;
           }
         });
+        // Si no se ha pulsado sobre un cuerpo y el tracking es "Ninguno", habilitar arrastre de cámara
         if (!sobreCuerpo && document.getElementById('trackSelect').value === "none") {
           draggingCamera = true;
         }
@@ -413,6 +414,24 @@
         }
       });
       
+      // Añadir funcionalidad para zoom con la rueda del ratón
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomFactor = Math.exp(e.deltaY * -0.001);
+        sim.userScaleFactor *= zoomFactor;
+        // Limitar el factor entre 0.1 y 5 (según el control scaleRange)
+        sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
+        document.getElementById('scaleRange').value = sim.userScaleFactor;
+        document.getElementById('scaleValor').textContent = sim.userScaleFactor;
+        if(document.getElementById('trackSelect').value !== "global"){
+          sim.targetScale = sim.userScaleFactor * sim.factorBase;
+        } else {
+          if(!sim.autoZoomEnabled) {
+            sim.targetScale = sim.userScaleFactor * sim.factorBase;
+          }
+        }
+      });
+      
       // Configuración inicial de cuerpos (3 predefinidos para "personalizada")
       const config3Body = {
         lagrange: [
@@ -518,7 +537,6 @@
           this.centerY = 0;
           this.targetScale = this.scale;
           this._requiredGlobalScale = this.factorBase;
-          // Nuevo: zoom automático activado por defecto
           this.autoZoomEnabled = true;
         }
         
@@ -599,8 +617,6 @@
               const margin = 1.2;
               const requiredScale = Math.min(canvas.width, canvas.height) / (Math.max(boundingWidth, boundingHeight) * margin);
               this._requiredGlobalScale = requiredScale;
-              // Si el zoom automático está activado, se usa el valor calculado;
-              // de lo contrario se mantiene el zoom basado en el control de escala.
               if (this.autoZoomEnabled) {
                 this.targetScale = requiredScale * this.userScaleFactor;
               } else {
@@ -608,7 +624,6 @@
               }
             }
           }
-          // En modo "none", se permite el panning manual y no se fuerza centrado.
           this.scale += (this.targetScale - this.scale) * 0.1;
         }
         
@@ -646,7 +661,6 @@
         } else {
           trackSelect.value = "none";
         }
-        // Mostrar o esconder el contenedor de zoom global
         const globalZoomContainer = document.getElementById('globalZoomToggleContainer');
         if (trackSelect.value === "global") {
           globalZoomContainer.style.display = "block";
@@ -725,7 +739,6 @@
         });
       }
       
-      // Eventos de controles
       document.getElementById('btnPausar').addEventListener('click', () => {
         sim.paused = !sim.paused;
         document.getElementById('btnPausar').textContent = sim.paused ? "Reanudar" : "Pausar";
@@ -768,7 +781,6 @@
         actualizarTrackSelect();
       });
       
-      // Botón para toggle de zoom automático en modo global
       const btnToggleAutoZoom = document.getElementById('btnToggleAutoZoom');
       btnToggleAutoZoom.addEventListener('click', () => {
         sim.autoZoomEnabled = !sim.autoZoomEnabled;
@@ -805,6 +817,23 @@
         actualizarListaCuerpos();
         actualizarTrackSelect();
         formAgregar.style.display = "none";
+      });
+      
+      // Evento para actualizar el zoom con la rueda del ratón
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomFactor = Math.exp(e.deltaY * -0.001);
+        sim.userScaleFactor *= zoomFactor;
+        sim.userScaleFactor = Math.max(0.1, Math.min(5, sim.userScaleFactor));
+        document.getElementById('scaleRange').value = sim.userScaleFactor;
+        document.getElementById('scaleValor').textContent = sim.userScaleFactor;
+        if(document.getElementById('trackSelect').value !== "global"){
+          sim.targetScale = sim.userScaleFactor * sim.factorBase;
+        } else {
+          if(!sim.autoZoomEnabled) {
+            sim.targetScale = sim.userScaleFactor * sim.factorBase;
+          }
+        }
       });
       
       function animate() {
